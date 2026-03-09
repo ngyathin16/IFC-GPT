@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# uv
+.uv/
+
+# Reports (build artifacts — golden baselines are tracked explicitly)
+reports/*.ifc
+reports/*.json
+
+# IDE
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

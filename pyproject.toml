@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-ifc-generation"
+version = "0.1.0"
+description = "LLM-driven IFC4 generation pipeline via Blender/Bonsai MCP server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # MCP Server Core
+    "mcp-server",
+    "mcp>=1.0.0",
+
+    # AI/LLM Libraries
+    "langchain>=0.1.0",
+    "langchain-core>=0.1",
+    "langchain-community>=0.1.0",
+    "langchain-huggingface>=0.0.1",
+    "langchain-chroma>=0.1.0",
+    "langgraph>=0.1",
+    "chromadb>=0.4.0",
+    "sentence-transformers>=2.2.0",
+    "anthropic>=0.40.0",
+
+    # IFC (system/venv side — NOT Blender embedded Python)
+    "ifcopenshell",
+
+    # Core utilities
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "tqdm>=4.66.0",
+    "python-dotenv>=1.0.0",
+    "rich>=13.0.0",
+
+    # Web server
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.0",
+
+    # Scientific computing
+    "numpy>=1.26.0",
+    "scipy>=1.11.0",
+    "matplotlib>=3.7.0",
+    "scikit-image>=0.22.0",
+    "networkx>=3.2.0",
+    "faiss-cpu>=1.7.4",
+    "shapely>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+]
+
+[project.scripts]
+ifc-bonsai-mcp = "main:main"
+
+[tool.setuptools]
+packages = ["blender_mcp"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"blender_mcp" = ["*.py"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
