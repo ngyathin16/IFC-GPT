@@ -12,7 +12,6 @@ dependencies = [
     # MCP Server Core
     "mcp-server",
     "mcp>=1.0.0",
-
     # AI/LLM Libraries
     "langchain>=0.1.0",
     "langchain-core>=0.1",
@@ -23,21 +22,18 @@ dependencies = [
     "chromadb>=0.4.0",
     "sentence-transformers>=2.2.0",
     "openai>=1.30.0",
-
     # IFC (system/venv side — NOT Blender embedded Python)
     "ifcopenshell",
-
+    "ifctester",
     # Core utilities
     "requests>=2.31.0",
     "beautifulsoup4>=4.12.0",
     "tqdm>=4.66.0",
     "python-dotenv>=1.0.0",
     "rich>=13.0.0",
-
     # Web server
     "fastapi>=0.111.0",
     "uvicorn>=0.30.0",
-
     # Scientific computing
     "numpy>=1.26.0",
     "scipy>=1.11.0",

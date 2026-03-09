@@ -1,0 +1,15 @@
+{
+  "schema": {
+    "valid": null,
+    "error_count": 0,
+    "warning_count": 0
+  },
+  "ids": {
+    "valid": null
+  },
+  "semantic": {
+    "valid": null,
+    "error_count": 0,
+    "warning_count": 0
+  }
+}

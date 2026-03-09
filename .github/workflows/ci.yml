@@ -52,7 +52,7 @@ jobs:
         run: uv run pytest tests/ -v --tb=short
 
   validate-ifc:
-    name: IFC Validation (placeholder)
+    name: IFC Validation
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -69,11 +69,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Run IFC validation
-        # TODO: replace glob with real generated fixture paths in Phase 3
+      - name: Generate golden IFC fixtures
         run: |
-          if compgen -G "reports/*.ifc" > /dev/null; then
-            uv run python validate/run_validation.py reports/*.ifc
-          else
-            echo "No IFC files to validate yet — skipping (Phase 3 placeholder)"
-          fi
+          uv run python tests/golden_test_simple_room.py
+          uv run python tests/golden_test_two_storey.py
+
+      - name: Schema validation — golden fixtures
+        run: |
+          uv run python validate/schema_validate.py tests/output/golden_simple_room.ifc
+          uv run python validate/schema_validate.py tests/output/golden_two_storey.ifc
+
+      - name: IDS validation — golden fixtures
+        run: |
+          uv run python validate/ids_validate.py tests/output/golden_simple_room.ifc ids/v0.ids
+          uv run python validate/ids_validate.py tests/output/golden_two_storey.ifc ids/v0.ids
+
+      - name: Semantic checks — golden fixtures
+        run: |
+          uv run python validate/semantic_checks.py tests/output/golden_simple_room.ifc
+          uv run python validate/semantic_checks.py tests/output/golden_two_storey.ifc

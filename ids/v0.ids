@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+
+  <info>
+    <title>LLM-IFC Generation v0 Requirements</title>
+    <copyright>Yau Lee Holdings</copyright>
+    <version>0.1.0</version>
+    <description>
+      Minimum information delivery requirements for LLM-generated IFC files.
+      Validates spatial structure, wall properties, opening types, and containment.
+    </description>
+    <author>llm-ifc-gen@yaulee.com</author>
+    <date>2026-03-05</date>
+    <purpose>Automated validation of LLM-generated architectural shell models</purpose>
+    <milestone>v0 PoC</milestone>
+  </info>
+
+  <specifications>
+
+    <!-- ==================== SPATIAL STRUCTURE ==================== -->
+
+    <specification name="Project must exist" ifcVersion="IFC4" instructions="Every IFC file must contain exactly one IfcProject.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCPROJECT</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <specification name="Site must exist" ifcVersion="IFC4" instructions="The model must contain at least one IfcSite.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCSITE</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <specification name="Building must exist" ifcVersion="IFC4" instructions="The model must contain at least one IfcBuilding.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCBUILDING</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <specification name="At least one storey" ifcVersion="IFC4" instructions="The model must contain at least one IfcBuildingStorey.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <!-- ==================== WALLS ==================== -->
+
+    <specification name="Walls require IsExternal property" ifcVersion="IFC4"
+                   instructions="All IfcWall elements must have Pset_WallCommon.IsExternal defined as a boolean.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property cardinality="required" instructions="Set IsExternal=TRUE for exterior walls, FALSE for interior.">
+          <propertySet>
+            <simpleValue>Pset_WallCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <specification name="Walls must be in a storey" ifcVersion="IFC4"
+                   instructions="All walls must be spatially contained in an IfcBuildingStorey.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCWALL</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required"
+                instructions="Every wall must be assigned to a storey via IfcRelContainedInSpatialStructure.">
+          <entity>
+            <name>
+              <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ==================== SLABS ==================== -->
+
+    <specification name="Slabs require IsExternal property" ifcVersion="IFC4"
+                   instructions="All IfcSlab elements must have Pset_SlabCommon.IsExternal.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCSLAB</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property cardinality="required" instructions="Set IsExternal=FALSE for interior floor slabs.">
+          <propertySet>
+            <simpleValue>Pset_SlabCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <specification name="Slabs must be in a storey" ifcVersion="IFC4">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCSLAB</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity>
+            <name>
+              <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ==================== DOORS ==================== -->
+
+    <specification name="Doors require IsExternal property" ifcVersion="IFC4"
+                   instructions="All IfcDoor elements must have Pset_DoorCommon.IsExternal.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_DoorCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <specification name="Doors must be in a storey" ifcVersion="IFC4">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity>
+            <name>
+              <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ==================== WINDOWS ==================== -->
+
+    <specification name="Windows require IsExternal property" ifcVersion="IFC4"
+                   instructions="All IfcWindow elements must have Pset_WindowCommon.IsExternal.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCWINDOW</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property cardinality="required">
+          <propertySet>
+            <simpleValue>Pset_WindowCommon</simpleValue>
+          </propertySet>
+          <baseName>
+            <simpleValue>IsExternal</simpleValue>
+          </baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <specification name="Windows must be in a storey" ifcVersion="IFC4">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCWINDOW</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity>
+            <name>
+              <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ==================== ROOFS ==================== -->
+
+    <specification name="Roofs must be in a storey" ifcVersion="IFC4">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCROOF</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE" cardinality="required">
+          <entity>
+            <name>
+              <simpleValue>IFCBUILDINGSTOREY</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+  </specifications>
+</ids>

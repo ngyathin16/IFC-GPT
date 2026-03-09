@@ -1,0 +1,133 @@
+{
+  "schema": {
+    "valid": true,
+    "schema": "IFC4",
+    "errors": [],
+    "warnings": [],
+    "error_count": 0,
+    "warning_count": 0
+  },
+  "ids": {
+    "valid": true,
+    "total_specs": 13,
+    "passed": 13,
+    "failed": 0,
+    "specifications": [
+      {
+        "name": "Project must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Site must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Building must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "At least one storey",
+        "status": true,
+        "applicable_entities": 2,
+        "not_applicable": false
+      },
+      {
+        "name": "Walls require IsExternal property",
+        "status": true,
+        "applicable_entities": 9,
+        "not_applicable": false
+      },
+      {
+        "name": "Walls must be in a storey",
+        "status": true,
+        "applicable_entities": 9,
+        "not_applicable": false
+      },
+      {
+        "name": "Slabs require IsExternal property",
+        "status": true,
+        "applicable_entities": 2,
+        "not_applicable": false
+      },
+      {
+        "name": "Slabs must be in a storey",
+        "status": true,
+        "applicable_entities": 2,
+        "not_applicable": false
+      },
+      {
+        "name": "Doors require IsExternal property",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Doors must be in a storey",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Windows require IsExternal property",
+        "status": true,
+        "applicable_entities": 4,
+        "not_applicable": false
+      },
+      {
+        "name": "Windows must be in a storey",
+        "status": true,
+        "applicable_entities": 4,
+        "not_applicable": false
+      },
+      {
+        "name": "Roofs must be in a storey",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      }
+    ]
+  },
+  "semantic": {
+    "valid": true,
+    "error_count": 0,
+    "warning_count": 5,
+    "issues": [
+      {
+        "severity": "warning",
+        "element": "0Sf4nRL9f6XRZosk2bafP2",
+        "element_type": "IfcDoor",
+        "message": "Front Door is not filling any opening"
+      },
+      {
+        "severity": "warning",
+        "element": "3MnTRkqFv6IOQHZPdE$70y",
+        "element_type": "IfcWindow",
+        "message": "Window_GF_0 is not filling any opening"
+      },
+      {
+        "severity": "warning",
+        "element": "2JH6cQ7rn8XPaQdWb$OEVG",
+        "element_type": "IfcWindow",
+        "message": "Window_GF_1 is not filling any opening"
+      },
+      {
+        "severity": "warning",
+        "element": "0YHxVGBlj2RBNH7nAwXnLf",
+        "element_type": "IfcWindow",
+        "message": "Window_L1_2 is not filling any opening"
+      },
+      {
+        "severity": "warning",
+        "element": "2_xQDinebEUvBX0aVmk_NX",
+        "element_type": "IfcWindow",
+        "message": "Window_L1_3 is not filling any opening"
+      }
+    ]
+  }
+}
