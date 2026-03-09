@@ -36,7 +36,7 @@ def verify_blender_addon() -> bool:
 
     results.append(_check(
         "Panel BLENDERMCP_PT_Panel is registered",
-        "BLENDERMCP_PT_Panel" in bpy.types.__dict__,
+        hasattr(bpy.types, "BLENDERMCP_PT_Panel"),
     ))
 
     results.append(_check(
