@@ -27,9 +27,9 @@ An LLM-driven pipeline that converts natural-language building descriptions into
 - [x] Module docstrings present on every `.py` file.
 
 ### Phase 2 — Component Template Registry
-- [ ] At least 5 parametric IFC4 component templates stored under `components/`.
-- [ ] Each template can be instantiated via a single MCP tool call.
-- [ ] Unit tests in `tests/` pass for all templates.
+- [x] At least 5 parametric IFC4 component templates stored under `components/`.
+- [x] Each template can be instantiated via a single MCP tool call.
+- [x] Unit tests in `tests/` pass for all templates.
 
 ### Phase 3 — Validation Layer
 - [ ] `validate/` scripts run `ifcopenshell.validate` against any generated `.ifc` file.

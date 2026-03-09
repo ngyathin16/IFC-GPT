@@ -1,0 +1,82 @@
+components:
+  - id: exterior_wall
+    ifc_class: IfcWall
+    predefined_type: STANDARD
+    mcp_tool: create_two_point_wall
+    params_schema:
+      start_point: {type: "List[float]", required: true, description: "[x,y,z] start"}
+      end_point: {type: "List[float]", required: true, description: "[x,y,z] end"}
+      thickness: {type: float, default: 0.2, min: 0.1, max: 0.5, unit: m}
+      height: {type: float, default: 3.0, min: 2.4, max: 6.0, unit: m}
+    constraints:
+      - "thickness >= 0.1"
+      - "height >= 2.4"
+    ids_rules:
+      - property: Pset_WallCommon.IsExternal
+        value: true
+    defaults:
+      material: "Concrete"
+
+  - id: interior_wall
+    ifc_class: IfcWall
+    predefined_type: STANDARD
+    mcp_tool: create_two_point_wall
+    params_schema:
+      start_point: {type: "List[float]", required: true}
+      end_point: {type: "List[float]", required: true}
+      thickness: {type: float, default: 0.15, min: 0.08, max: 0.3, unit: m}
+      height: {type: float, default: 3.0, min: 2.4, max: 4.0, unit: m}
+    constraints:
+      - "thickness >= 0.08"
+    ids_rules:
+      - property: Pset_WallCommon.IsExternal
+        value: false
+
+  - id: ground_slab
+    ifc_class: IfcSlab
+    predefined_type: FLOOR
+    mcp_tool: create_slab
+    params_schema:
+      polyline: {type: "List[List[float]]", required: true, description: "2D boundary points"}
+      depth: {type: float, default: 0.2, min: 0.15, max: 0.5, unit: m}
+    ids_rules:
+      - property: Pset_SlabCommon.IsExternal
+        value: false
+
+  - id: standard_door
+    ifc_class: IfcDoor
+    mcp_tool: create_door
+    params_schema:
+      dimensions:
+        width: {type: float, default: 0.9, min: 0.7, max: 1.2, unit: m}
+        height: {type: float, default: 2.0, min: 1.8, max: 2.4, unit: m}
+      operation_type: {type: str, default: "SINGLE_SWING_LEFT", enum: [SINGLE_SWING_LEFT, SINGLE_SWING_RIGHT, DOUBLE_DOOR_SINGLE_SWING, SLIDING_TO_LEFT, SLIDING_TO_RIGHT]}
+      location: {type: "List[float]", required: true}
+
+  - id: standard_window
+    ifc_class: IfcWindow
+    mcp_tool: create_window
+    params_schema:
+      dimensions:
+        width: {type: float, default: 1.2, min: 0.6, max: 3.0, unit: m}
+        height: {type: float, default: 1.5, min: 0.6, max: 2.4, unit: m}
+      partition_type: {type: str, default: "SINGLE_PANEL", enum: [SINGLE_PANEL, DOUBLE_PANEL_VERTICAL, TRIPLE_PANEL_VERTICAL]}
+      location: {type: "List[float]", required: true}
+
+  - id: flat_roof
+    ifc_class: IfcRoof
+    predefined_type: FLAT_ROOF
+    mcp_tool: create_roof
+    params_schema:
+      polyline: {type: "List[List[float]]", required: true, description: "3D outline points"}
+      roof_type: {type: str, default: "FLAT", enum: [FLAT, SHED, GABLE_ROOF, HIP_ROOF]}
+      angle: {type: float, default: 5.0, min: 0, max: 60, unit: degrees}
+      thickness: {type: float, default: 0.3, min: 0.15, max: 0.5, unit: m}
+
+  - id: straight_stairs
+    ifc_class: IfcStairFlight
+    mcp_tool: create_stairs
+    params_schema:
+      width: {type: float, default: 1.2, min: 0.9, max: 2.0, unit: m}
+      height: {type: float, required: true, description: "Total rise"}
+      stairs_type: {type: str, default: "STRAIGHT", enum: [STRAIGHT, SPIRAL, L_SHAPED, U_SHAPED]}

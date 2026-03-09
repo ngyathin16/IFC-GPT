@@ -32,31 +32,26 @@ def get_default_container():
 
 def save_and_load_ifc():
     """
-    Saves the current IFC project to its file, then clears the scene 
-    and reloads the project from the same file. 
+    Saves the current IFC project to its file using a direct ifcopenshell
+    file write. This bypasses the slow Bonsai export pipeline (which
+    rebuilds the entire scene and takes 30-60s), keeping each MCP tool
+    call well within Windsurf's timeout window.
     """
-    import bpy
-    import logging
-    from bonsai.bim import export_ifc
     from bonsai.bim.ifc import IfcStore
     import bonsai.tool as tool
 
     path = IfcStore.path
 
     if not path:
-        print("No IFC file path found. Cannot save and reload.")
+        print("No IFC file path found. Cannot save.")
         return
 
     try:
-        logger = logging.getLogger("BonsaiExport")
-        export_settings = export_ifc.IfcExportSettings.factory(bpy.context, path, logger)
-        exporter = export_ifc.IfcExporter(export_settings)
-        exporter.export()
-        tool.IfcGit.load_project(path)
-        
-
+        ifc_file = tool.Ifc.get()
+        if ifc_file:
+            ifc_file.write(path)
     except Exception as e:
-        print(f"An error occurred during the save and load process: {e}")
+        print(f"An error occurred during IFC save: {e}")
 
 
 def get_selected_guids() -> List[str]:

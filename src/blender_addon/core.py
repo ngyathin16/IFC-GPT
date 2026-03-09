@@ -148,14 +148,14 @@ class BlenderMCPServer:
                 result_container['done'] = True
                 return None
         
-        bpy.app.timers.register(command_executor)
-        
-        timeout = 30.0
+        bpy.app.timers.register(command_executor, first_interval=0.0, persistent=False)
+
+        timeout = 120.0
         start_time = time.time()
         while not result_container['done']:
             time.sleep(0.01)
             if time.time() - start_time > timeout:
-                return {"status": "error", "message": "Command execution timed out"}
+                return {"status": "error", "message": "Command execution timed out after 120s"}
         return result_container['result']
         
     def _execute_command_internal(self, command):

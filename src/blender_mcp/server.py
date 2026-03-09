@@ -53,8 +53,6 @@ class BlenderConnection:
     
     def receive_full_response(self, sock, buffer_size=8192):
         """Receive the complete response, potentially in multiple chunks"""
-        # Allow longer-running Blender operations (geometry/IFC ops) to respond
-        sock.settimeout(120.0)
         buffer = bytearray()
         
         while True:
@@ -74,44 +72,67 @@ class BlenderConnection:
         
         return bytes(buffer)
     
+    def _is_connected(self) -> bool:
+        """Check whether the socket is still alive without blocking."""
+        if not self.sock:
+            return False
+        try:
+            self.sock.setblocking(False)
+            data = self.sock.recv(1, socket.MSG_PEEK)
+            self.sock.setblocking(True)
+            return len(data) > 0
+        except BlockingIOError:
+            self.sock.setblocking(True)
+            return True
+        except Exception:
+            self.sock = None
+            return False
+
     def send_command(self, command_type: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Send a command to Blender and return the response"""
-        if not self.sock and not self.connect():
-            raise ConnectionError("Not connected to Blender")
-        
-        command = { "type": command_type, "params": params or {}}
-        
+        """Send a command to Blender and return the response.
+
+        Automatically reconnects once if the socket is stale (e.g. after a
+        Windsurf window reload that left the previous connection open).
+        """
+        if not self._is_connected():
+            logger.warning("Socket is stale or missing — reconnecting")
+            self.disconnect()
+            if not self.connect():
+                raise ConnectionError("Not connected to Blender")
+
+        command = {"type": command_type, "params": params or {}}
+
         try:
             logger.info(f"Sending command: {command_type} with params: {params}")
-            
+
             self.sock.sendall(json.dumps(command).encode('utf-8'))
-            logger.info(f"Command sent, waiting for response...")
-            
+            logger.info("Command sent, waiting for response...")
+
             self.sock.settimeout(120.0)
             response_data = self.receive_full_response(self.sock)
             logger.info(f"Received {len(response_data)} bytes of data")
-            
+
             response = json.loads(response_data.decode('utf-8'))
             logger.info(f"Response status: {response.get('status')}")
-            
+
             if response.get('status') == 'error':
                 error_msg = response.get('message', 'Unknown error')
                 logger.error(f"Blender returned error: {error_msg}")
                 return {"error": error_msg}
-                
+
             return response.get('result', {})
-        
+
         except socket.error as e:
             logger.error(f"Socket connection error: {str(e)}")
             self.sock = None
             raise Exception(f"Connection to Blender lost: {str(e)}")
-        
+
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON response from Blender: {str(e)}")
             if 'response_data' in locals() and response_data:
                 logger.error(f"Raw response (first 200 bytes): {response_data[:200]}")
             raise Exception(f"Invalid response from Blender: {str(e)}")
-        
+
         except Exception as e:
             logger.error(f"Error communicating with Blender: {str(e)}")
             self.sock = None
@@ -122,20 +143,21 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
     """Manage server startup and shutdown lifecycle"""
     
     startup_start = time.time()
+    logger.info("BlenderMCP server starting up")
+    
+    blender_start = time.time()
     try:
-        logger.info("BlenderMCP server starting up")
-        
-        # Step 1: Blender connection
-        blender_start = time.time()
-        try:
-            blender = get_blender_connection()
-            blender_time = time.time() - blender_start
-            logger.info(f"Successfully connected to Blender on startup ({blender_time:.2f}s)")
-        except Exception as e:
-            blender_time = time.time() - blender_start
-            logger.warning(f"Could not connect to Blender on startup ({blender_time:.2f}s): {str(e)}")
-            logger.warning("Make sure the Blender addon is running before using Blender resources or tools")
+        get_blender_connection()
+        blender_time = time.time() - blender_start
+        logger.info(f"Successfully connected to Blender on startup ({blender_time:.2f}s)")
+    except Exception as e:
+        blender_time = time.time() - blender_start
+        logger.warning(f"Could not connect to Blender on startup ({blender_time:.2f}s): {str(e)}")
+        logger.warning("Make sure the Blender addon is running before using Blender resources or tools")
 
+    logger.info(f"Server startup complete ({time.time() - startup_start:.2f}s)")
+    try:
+        yield {}
     finally:
         global _blender_connection
         if _blender_connection:
