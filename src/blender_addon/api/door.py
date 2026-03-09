@@ -14,20 +14,22 @@ Test Examples:
     props = get_door_properties(door_guid="1AbCdEfGhIjKlMnOp")
 """
 
-import numpy as np
+from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Union, Tuple
-import math
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, degrees_to_radians,
-    create_rotation_matrix_x, create_rotation_matrix_y, create_rotation_matrix_z,
-    create_transformation_matrix, save_and_load_ifc, create_wall_aligned_matrix
-)
-from . import register_command
+import numpy as np
 
+from . import register_command
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_transformation_matrix,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 DOOR_OPERATION_TYPES = {
     "SINGLE_SWING_LEFT": "SINGLE_SWING_LEFT",
@@ -45,34 +47,34 @@ DOOR_OPERATION_TYPES = {
 @dataclass
 class DoorLiningProperties:
     """Door frame/lining properties (meters)."""
-    LiningDepth: Optional[float] = 0.05
-    LiningThickness: Optional[float] = 0.05
-    LiningOffset: Optional[float] = 0.0
-    LiningToPanelOffsetX: Optional[float] = 0.025
-    LiningToPanelOffsetY: Optional[float] = 0.025
-    TransomThickness: Optional[float] = 0.0
-    TransomOffset: Optional[float] = 1.525
-    CasingDepth: Optional[float] = 0.005
-    CasingThickness: Optional[float] = 0.075
-    ThresholdDepth: Optional[float] = 0.1
-    ThresholdThickness: Optional[float] = 0.025
-    ThresholdOffset: Optional[float] = 0.0
-    ShapeAspectStyle: Optional[Any] = None
+    LiningDepth: float | None = 0.05
+    LiningThickness: float | None = 0.05
+    LiningOffset: float | None = 0.0
+    LiningToPanelOffsetX: float | None = 0.025
+    LiningToPanelOffsetY: float | None = 0.025
+    TransomThickness: float | None = 0.0
+    TransomOffset: float | None = 1.525
+    CasingDepth: float | None = 0.005
+    CasingThickness: float | None = 0.075
+    ThresholdDepth: float | None = 0.1
+    ThresholdThickness: float | None = 0.025
+    ThresholdOffset: float | None = 0.0
+    ShapeAspectStyle: Any | None = None
 
 
 @dataclass
 class DoorPanelProperties:
     """Door panel properties (meters)."""
-    PanelDepth: Optional[float] = 0.035
-    PanelWidth: Optional[float] = 1.0
-    FrameDepth: Optional[float] = 0.035
-    FrameThickness: Optional[float] = 0.035
-    PanelOperation: Optional[str] = None
-    PanelPosition: Optional[str] = None
-    ShapeAspectStyle: Optional[Any] = None
+    PanelDepth: float | None = 0.035
+    PanelWidth: float | None = 1.0
+    FrameDepth: float | None = 0.035
+    FrameThickness: float | None = 0.035
+    PanelOperation: str | None = None
+    PanelPosition: str | None = None
+    ShapeAspectStyle: Any | None = None
 
 
-def create_default_lining_properties(**overrides) -> Dict[str, Any]:
+def create_default_lining_properties(**overrides) -> dict[str, Any]:
     """Create default door lining properties."""
     defaults = {
         "lining_depth": 0.05,
@@ -92,7 +94,7 @@ def create_default_lining_properties(**overrides) -> Dict[str, Any]:
     return defaults
 
 
-def create_default_panel_properties(**overrides) -> Dict[str, Any]:
+def create_default_panel_properties(**overrides) -> dict[str, Any]:
     """Create default door panel properties."""
     defaults = {
         "panel_depth": 0.035,
@@ -106,7 +108,7 @@ def create_default_panel_properties(**overrides) -> Dict[str, Any]:
 
 
 @register_command('get_door_operation_types', description="Get all supported door operation types")
-def get_door_operation_types() -> Dict[str, Any]:
+def get_door_operation_types() -> dict[str, Any]:
     """Get all door operation types with descriptions."""
     return {
         "success": True,
@@ -118,19 +120,19 @@ def get_door_operation_types() -> Dict[str, Any]:
 @register_command('create_door', description="Create a new door")
 def create_door(
     name: str = "New Door",
-    dimensions: Optional[Dict[str, float]] = None,
+    dimensions: dict[str, float] | None = None,
     operation_type: str = "SINGLE_SWING_LEFT",
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    frame_properties: Optional[Dict[str, float]] = None,
-    panel_properties: Optional[Dict[str, float]] = None,
-    custom_lining: Optional[Dict[str, Any]] = None,
-    custom_panels: Optional[Dict[str, Any]] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    unit_scale: Optional[float] = None,
-    part_of_product: Optional[Any] = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    frame_properties: dict[str, float] | None = None,
+    panel_properties: dict[str, float] | None = None,
+    custom_lining: dict[str, Any] | None = None,
+    custom_panels: dict[str, Any] | None = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    unit_scale: float | None = None,
+    part_of_product: Any | None = None,
     verbose: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create parametric IfcDoor with specified properties."""
     
     if dimensions is None:
@@ -339,12 +341,12 @@ def _extract_door_properties(door, ifc_file):
 def update_door(
     door_guid: str,  # IFC GlobalId of door to update
     *,
-    dimensions: Dict[str, float] = None,  # {"width": m, "height": m}
+    dimensions: dict[str, float] = None,  # {"width": m, "height": m}
     operation_type: str = None,  # new door operation type
-    frame_properties: Dict[str, float] = None,  # frame properties to update
-    panel_properties: Dict[str, float] = None,  # panel properties to update
-    custom_lining: Dict[str, Any] = None,  # custom lining properties dict
-    custom_panels: Dict[str, Any] = None,  # custom panel properties dict
+    frame_properties: dict[str, float] = None,  # frame properties to update
+    panel_properties: dict[str, float] = None,  # panel properties to update
+    custom_lining: dict[str, Any] = None,  # custom lining properties dict
+    custom_panels: dict[str, Any] = None,  # custom panel properties dict
     part_of_product: Any = None,  # parent product
     verbose: bool = False,  # print debug info
 ):
@@ -448,7 +450,7 @@ def update_door(
 
 
 @register_command('get_door_properties', description="Get properties of an existing door")
-def get_door_properties(door_guid: str) -> Dict[str, Any]:
+def get_door_properties(door_guid: str) -> dict[str, Any]:
     """Get properties of an existing door by IFC GUID."""
     ifc_file = get_ifc_file()
     door = _get_door_by_guid(door_guid, ifc_file)

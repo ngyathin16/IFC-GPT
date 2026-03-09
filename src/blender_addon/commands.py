@@ -17,12 +17,10 @@ Module Structure:
     - Automatic import of API modules for command registration
 """
 
-import bpy
 import traceback
-from typing import Dict, Any
+from typing import Any
 
-from .api import code, get_command, get_all_commands
-from bonsai import tool
+from .api import get_all_commands, get_command
 
 BONSAI_AVAILABLE = False
 try:
@@ -40,10 +38,10 @@ except ImportError:
     BONSAI_AVAILABLE = False
     print("Bonsai/IfcOpenShell not available.")
 
-from .api import scene, wall
 from .scene_analysis.scene_analysis import *
 
-def execute_command(command_type: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+
+def execute_command(command_type: str, params: dict[str, Any] = None) -> dict[str, Any]:
     """
     Execute a command by name with parameters.
     This is the main entry point for executing commands.

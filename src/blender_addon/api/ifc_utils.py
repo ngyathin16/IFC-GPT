@@ -4,12 +4,12 @@ This module contains shared utility functions used across all IFC entity creatio
 to avoid code duplication and maintain consistency. Uses adapter layer for bonsai/bpy independence.
 """
 
-import numpy as np
 import math
+
 import ifcopenshell
 import ifcopenshell.api
 import ifcopenshell.util.unit
-from typing import List, Optional, Any, Dict
+import numpy as np
 
 
 def get_ifc_file():
@@ -37,8 +37,8 @@ def save_and_load_ifc():
     rebuilds the entire scene and takes 30-60s), keeping each MCP tool
     call well within Windsurf's timeout window.
     """
-    from bonsai.bim.ifc import IfcStore
     import bonsai.tool as tool
+    from bonsai.bim.ifc import IfcStore
 
     path = IfcStore.path
 
@@ -54,7 +54,7 @@ def save_and_load_ifc():
         print(f"An error occurred during IFC save: {e}")
 
 
-def get_selected_guids() -> List[str]:
+def get_selected_guids() -> list[str]:
     """Get currently selected IFC elements."""
     import bonsai.tool as tool
     selection = tool.Selection.get()
@@ -239,12 +239,12 @@ def create_wall_aligned_matrix(
     )
 
 
-def create_rectangular_polyline(width: float, length: float) -> List[tuple]:
+def create_rectangular_polyline(width: float, length: float) -> list[tuple]:
     """Create rectangular polyline for element creation."""
     return [(0.0, 0.0), (width, 0.0), (width, length), (0.0, length)]
 
 
-def create_circular_polyline(radius: float, segments: int = 32) -> List[tuple]:
+def create_circular_polyline(radius: float, segments: int = 32) -> list[tuple]:
     """Create circular polyline for round element creation."""
     points = []
     for i in range(segments):

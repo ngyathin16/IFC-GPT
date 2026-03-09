@@ -13,7 +13,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -90,7 +90,7 @@ def create_two_storey() -> str:
         products=[gf, l1],
     )
 
-    def create_perimeter_walls(storey, storey_name: str, elev: float) -> Dict:
+    def create_perimeter_walls(storey, storey_name: str, elev: float) -> dict:
         """Create the four perimeter walls for a storey."""
         walls_def = [
             (f"{storey_name}_South", [0, 0, elev], [WIDTH, 0, elev]),
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     try:
         from golden_test_simple_room import run_all_validations  # type: ignore[import]
 
-        results: Dict[str, Any] = run_all_validations(ifc_path)
+        results: dict[str, Any] = run_all_validations(ifc_path)
     except ImportError:
         logger.warning("Could not import validation runner, running standalone")
         results = {"note": "Validation runner not available"}

@@ -28,15 +28,17 @@ Test Examples:
     remove_style(style_name="Old Style")
 """
 
+from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Union, Tuple
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context,
-    save_and_load_ifc
-)
+
 from . import register_command
+from .ifc_utils import (
+    get_ifc_file,
+    save_and_load_ifc,
+)
 
 
 @dataclass
@@ -44,25 +46,25 @@ class StyleProperties:
     """Style properties for IFC creation."""
     name: str = "New Style"
     style_type: str = "IfcSurfaceStyle"
-    surface_color: Tuple[float, float, float] = (0.8, 0.8, 0.8)
+    surface_color: tuple[float, float, float] = (0.8, 0.8, 0.8)
     transparency: float = 0.0
     reflectance_method: str = "NOTDEFINED"
     
-    diffuse_color: Optional[Tuple[float, float, float]] = None
+    diffuse_color: tuple[float, float, float] | None = None
     metallic_factor: float = 0.0
     roughness_factor: float = 0.5
-    specular_color: Optional[Tuple[float, float, float]] = None
-    emissive_color: Optional[Tuple[float, float, float]] = None
+    specular_color: tuple[float, float, float] | None = None
+    emissive_color: tuple[float, float, float] | None = None
 
 
 @register_command('create_surface_style', description="Create basic surface style with color and transparency")
 def create_surface_style(
     name: str = "New Style",
-    color: List[float] = None,
+    color: list[float] = None,
     transparency: float = 0.0,
     style_type: str = "shading",
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a basic surface style with color and transparency.
     
     Args:
@@ -146,13 +148,13 @@ def create_surface_style(
 @register_command('create_pbr_style', description="Create PBR (physically based rendering) style")
 def create_pbr_style(
     name: str = "PBR Style",
-    diffuse_color: List[float] = None,
+    diffuse_color: list[float] = None,
     metallic: float = 0.0,
     roughness: float = 0.5,
     transparency: float = 0.0,
-    emissive_color: List[float] = None,
+    emissive_color: list[float] = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a PBR (Physically Based Rendering) style.
     
     Args:
@@ -250,10 +252,10 @@ def create_pbr_style(
 
 @register_command('apply_style_to_object', description="Apply style directly to one or more IFC objects")
 def apply_style_to_object(
-    object_guids: Union[str, List[str]],
+    object_guids: str | list[str],
     style_name: str,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Apply a style directly to one or more IFC objects' representations.
     
     Args:
@@ -453,7 +455,7 @@ def apply_style_to_object(
 
 
 @register_command('list_styles', description="List all available styles in the model")
-def list_styles() -> Dict[str, Any]:
+def list_styles() -> dict[str, Any]:
     """List all styles available in the current IFC model.
     
     Returns:
@@ -517,12 +519,12 @@ def list_styles() -> Dict[str, Any]:
 @register_command('update_style', description="Update an existing style")
 def update_style(
     style_name: str,
-    color: List[float] = None,
+    color: list[float] = None,
     transparency: float = None,
     metallic: float = None,
     roughness: float = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update properties of an existing style.
     
     Args:
@@ -628,7 +630,7 @@ def update_style(
 def remove_style(
     style_name: str,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Remove a style from the model.
     
     Args:

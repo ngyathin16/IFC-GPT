@@ -4,15 +4,17 @@ Manages the persistent TCP connection to the Blender addon socket server,
 provides the `get_blender_connection` helper used by all MCP tool modules,
 and wires up the FastMCP server lifespan.
 """
-from mcp.server.fastmcp import FastMCP
-import socket
 import json
-import time
 import logging
-from dataclasses import dataclass
-from contextlib import asynccontextmanager
-from typing import AsyncIterator, Dict, Any
 import os
+import socket
+import time
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from typing import Any
+
+from mcp.server.fastmcp import FastMCP
 
 from .mcp_instance import mcp
 
@@ -66,9 +68,9 @@ class BlenderConnection:
                     break
                 except json.JSONDecodeError:
                     pass
-            except socket.timeout:
+            except TimeoutError:
                 logger.error("Socket timeout while receiving data")
-                raise Exception("Timeout while receiving data from Blender")
+                raise Exception("Timeout while receiving data from Blender") from None
         
         return bytes(buffer)
     
@@ -88,7 +90,7 @@ class BlenderConnection:
             self.sock = None
             return False
 
-    def send_command(self, command_type: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+    def send_command(self, command_type: str, params: dict[str, Any] = None) -> dict[str, Any]:
         """Send a command to Blender and return the response.
 
         Automatically reconnects once if the socket is stale (e.g. after a
@@ -122,24 +124,24 @@ class BlenderConnection:
 
             return response.get('result', {})
 
-        except socket.error as e:
+        except OSError as e:
             logger.error(f"Socket connection error: {str(e)}")
             self.sock = None
-            raise Exception(f"Connection to Blender lost: {str(e)}")
+            raise Exception(f"Connection to Blender lost: {str(e)}") from e
 
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON response from Blender: {str(e)}")
             if 'response_data' in locals() and response_data:
                 logger.error(f"Raw response (first 200 bytes): {response_data[:200]}")
-            raise Exception(f"Invalid response from Blender: {str(e)}")
+            raise Exception(f"Invalid response from Blender: {str(e)}") from e
 
         except Exception as e:
             logger.error(f"Error communicating with Blender: {str(e)}")
             self.sock = None
-            raise Exception(f"Communication error with Blender: {str(e)}")
+            raise Exception(f"Communication error with Blender: {str(e)}") from e
 
 @asynccontextmanager
-async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
+async def server_lifespan(server: FastMCP) -> AsyncIterator[dict[str, Any]]:
     """Manage server startup and shutdown lifecycle"""
     
     startup_start = time.time()
@@ -190,7 +192,6 @@ def get_blender_connection():
     return _blender_connection
 
 #import all mcp tools, resources, and prompts
-from .mcp_functions import api_tools, analysis_tools, prompts, rag_tools, ping
 
 def main():
     """Run the MCP server"""

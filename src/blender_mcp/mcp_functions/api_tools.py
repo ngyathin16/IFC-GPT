@@ -25,11 +25,13 @@ Integration:
     maintaining full IFC compliance and Blender integration.
 """
 
-from mcp.server.fastmcp import Context
 import json
-from typing import List, Optional, Union, Dict, Any
-from ..server import logger, get_blender_connection
+from typing import Any
+
+from mcp.server.fastmcp import Context
+
 from ..mcp_instance import mcp
+from ..server import get_blender_connection, logger
 
 
 @mcp.tool()
@@ -290,7 +292,7 @@ def get_scene_info(
     ctx: Context,
     limit: int = -1,
     offset: int = 0,
-    obj_type: Optional[str] = None,
+    obj_type: str | None = None,
     include_bbox: bool = False,
     include_transform: bool = False,
     round_decimals: int = 3,
@@ -409,7 +411,7 @@ def get_selected_objects(ctx: Context) -> str:
 @mcp.tool()
 def get_object_info(
     ctx: Context,
-    guids: Optional[Union[str, List[str]]] = None,
+    guids: str | list[str] | None = None,
     use_selection: bool = False,
     detailed: bool = False
 ) -> str:
@@ -508,13 +510,13 @@ def get_ifc_scene_overview(ctx: Context, include_selection_summary: bool = False
 def create_wall(
     ctx: Context,
     name: str = "New Wall",
-    dimensions: Optional[Dict[str, float]] = None,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    geometry_properties: Optional[Dict[str, Any]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    material: Optional[str] = None,
-    wall_type_guid: Optional[str] = None,
+    dimensions: dict[str, float] | None = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    geometry_properties: dict[str, Any] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    material: str | None = None,
+    wall_type_guid: str | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -581,8 +583,8 @@ def create_wall(
 @mcp.tool()
 def create_two_point_wall(
     ctx: Context,
-    start_point: List[float],
-    end_point: List[float],
+    start_point: list[float],
+    end_point: list[float],
     name: str = "Two Point Wall",
     thickness: float = 0.2,
     height: float = 3.0
@@ -639,7 +641,7 @@ def create_two_point_wall(
 @mcp.tool()
 def create_polyline_walls(
     ctx: Context,
-    points: List[List[float]],
+    points: list[list[float]],
     name_prefix: str = "Wall",
     thickness: float = 0.2,
     height: float = 3.0,
@@ -700,8 +702,8 @@ def create_polyline_walls(
 def update_wall(
     ctx: Context,
     wall_guid: str,
-    dimensions: Optional[Dict[str, float]] = None,
-    geometry_properties: Optional[Dict[str, Any]] = None,
+    dimensions: dict[str, float] | None = None,
+    geometry_properties: dict[str, Any] | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -839,14 +841,14 @@ def get_roof_types(ctx: Context) -> str:
 @mcp.tool()
 def create_roof(
     ctx: Context,
-    polyline: List[List[float]],
+    polyline: list[list[float]],
     roof_type: str = "FLAT",
     angle: float = 30.0,
     thickness: float = 0.3,
-    name: Optional[str] = None,
-    rotation: Optional[List[float]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    unit_scale: Optional[float] = None,
+    name: str | None = None,
+    rotation: list[float] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    unit_scale: float | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -955,10 +957,10 @@ def create_roof(
 def update_roof(
     ctx: Context,
     roof_guid: str,
-    roof_type: Optional[str] = None,
-    angle: Optional[float] = None,
-    thickness: Optional[float] = None,
-    name: Optional[str] = None,
+    roof_type: str | None = None,
+    angle: float | None = None,
+    thickness: float | None = None,
+    name: str | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -1059,7 +1061,7 @@ def update_roof(
 @mcp.tool()
 def delete_roof(
     ctx: Context,
-    roof_guids: List[str]
+    roof_guids: list[str]
 ) -> str:
     """
     Delete one or more IFC roofs by their GlobalIds with comprehensive cleanup.
@@ -1127,14 +1129,14 @@ def delete_roof(
 def create_slab(
     ctx: Context,
     name: str = "New Slab",
-    polyline: Optional[List[List[float]]] = None,
+    polyline: list[list[float]] | None = None,
     depth: float = 0.2,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    geometry_properties: Optional[Dict[str, Any]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    material: Optional[str] = None,
-    slab_type_guid: Optional[str] = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    geometry_properties: dict[str, Any] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    material: str | None = None,
+    slab_type_guid: str | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -1232,9 +1234,9 @@ def create_slab(
 def update_slab(
     ctx: Context,
     slab_guid: str,
-    depth: Optional[float] = None,
-    polyline: Optional[List[List[float]]] = None,
-    geometry_properties: Optional[Dict[str, Any]] = None,
+    depth: float | None = None,
+    polyline: list[list[float]] | None = None,
+    geometry_properties: dict[str, Any] | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -1443,17 +1445,17 @@ def get_door_operation_types(ctx: Context) -> str:
 def create_door(
     ctx: Context,
     name: str = "New Door",
-    dimensions: Optional[Dict[str, float]] = None,
+    dimensions: dict[str, float] | None = None,
     operation_type: str = "SINGLE_SWING_LEFT",
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    frame_properties: Optional[Dict[str, float]] = None,
-    panel_properties: Optional[Dict[str, float]] = None,
-    custom_lining: Optional[Dict[str, Any]] = None,
-    custom_panels: Optional[Dict[str, Any]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    unit_scale: Optional[float] = None,
-    part_of_product: Optional[Any] = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    frame_properties: dict[str, float] | None = None,
+    panel_properties: dict[str, float] | None = None,
+    custom_lining: dict[str, Any] | None = None,
+    custom_panels: dict[str, Any] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    unit_scale: float | None = None,
+    part_of_product: Any | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -1561,13 +1563,13 @@ def create_door(
 def update_door(
     ctx: Context,
     door_guid: str,
-    dimensions: Optional[Dict[str, float]] = None,
-    operation_type: Optional[str] = None,
-    frame_properties: Optional[Dict[str, float]] = None,
-    panel_properties: Optional[Dict[str, float]] = None,
-    custom_lining: Optional[Dict[str, Any]] = None,
-    custom_panels: Optional[Dict[str, Any]] = None,
-    part_of_product: Optional[Any] = None,
+    dimensions: dict[str, float] | None = None,
+    operation_type: str | None = None,
+    frame_properties: dict[str, float] | None = None,
+    panel_properties: dict[str, float] | None = None,
+    custom_lining: dict[str, Any] | None = None,
+    custom_panels: dict[str, Any] | None = None,
+    part_of_product: Any | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -1762,17 +1764,17 @@ def get_window_partition_types(ctx: Context) -> str:
 def create_window(
     ctx: Context,
     name: str = "New Window",
-    dimensions: Optional[Dict[str, float]] = None,
+    dimensions: dict[str, float] | None = None,
     partition_type: str = "SINGLE_PANEL",
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    frame_properties: Optional[Dict[str, float]] = None,
-    panel_properties: Optional[Dict[str, float]] = None,
-    custom_panels: Optional[List[Dict[str, Any]]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    unit_scale: Optional[float] = None,
-    part_of_product: Optional[Any] = None,
-    wall_guid: Optional[str] = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    frame_properties: dict[str, float] | None = None,
+    panel_properties: dict[str, float] | None = None,
+    custom_panels: list[dict[str, Any]] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    unit_scale: float | None = None,
+    part_of_product: Any | None = None,
+    wall_guid: str | None = None,
     create_opening: bool = False,
     verbose: bool = False
 ) -> str:
@@ -1901,12 +1903,12 @@ def create_window(
 def update_window(
     ctx: Context,
     window_guid: str,
-    dimensions: Optional[Dict[str, float]] = None,
-    partition_type: Optional[str] = None,
-    frame_properties: Optional[Dict[str, float]] = None,
-    panel_properties: Optional[Dict[str, float]] = None,
-    custom_panels: Optional[List[Dict[str, Any]]] = None,
-    part_of_product: Optional[Any] = None,
+    dimensions: dict[str, float] | None = None,
+    partition_type: str | None = None,
+    frame_properties: dict[str, float] | None = None,
+    panel_properties: dict[str, float] | None = None,
+    custom_panels: list[dict[str, Any]] | None = None,
+    part_of_product: Any | None = None,
     touch_overall_attrs: bool = True,
     verbose: bool = False
 ) -> str:
@@ -1995,12 +1997,12 @@ def create_trimesh_ifc(
     ctx: Context,
     trimesh_code: str,
     ifc_class: str = "IfcBuildingElementProxy",   
-    name: Optional[str] = None,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    parameters: Optional[Dict[str, Any]] = None,
+    name: str | None = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    parameters: dict[str, Any] | None = None,
     result_variable_name: str = "result",
-    properties: Optional[Dict[str, Any]] = None,
+    properties: dict[str, Any] | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2201,17 +2203,17 @@ def create_stairs(
     width: float,
     height: float,
     stairs_type: str = "STRAIGHT",
-    num_steps: Optional[int] = None,
+    num_steps: int | None = None,
     length: float = 4.0,
-    riser_height: Optional[float] = None,
-    radius: Optional[float] = None,
-    landing_width: Optional[float] = None,
-    landing_depth: Optional[float] = None,
-    name: Optional[str] = None,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    transformation_matrix: Optional[List[List[float]]] = None,
-    unit_scale: Optional[float] = None,
+    riser_height: float | None = None,
+    radius: float | None = None,
+    landing_width: float | None = None,
+    landing_depth: float | None = None,
+    name: str | None = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    unit_scale: float | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2291,11 +2293,11 @@ def create_stairs(
 def update_stairs(
     ctx: Context,
     stairs_guid: str,
-    width: Optional[float] = None,
-    height: Optional[float] = None,
-    stairs_type: Optional[str] = None,
-    num_steps: Optional[int] = None,
-    name: Optional[str] = None,
+    width: float | None = None,
+    height: float | None = None,
+    stairs_type: str | None = None,
+    num_steps: int | None = None,
+    name: str | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2349,7 +2351,7 @@ def update_stairs(
         return f"Error updating stairs: {e}"
 
 @mcp.tool()
-def delete_stairs(ctx: Context, stairs_guids: List[str]) -> str:
+def delete_stairs(ctx: Context, stairs_guids: list[str]) -> str:
     """
     Delete one or more stairs by their IFC GUIDs.
     
@@ -2388,7 +2390,7 @@ def delete_stairs(ctx: Context, stairs_guids: List[str]) -> str:
 def create_surface_style(
     ctx: Context,
     name: str = "New Style",
-    color: Optional[List[float]] = None,
+    color: list[float] | None = None,
     transparency: float = 0.0,
     style_type: str = "shading",
     verbose: bool = False
@@ -2451,11 +2453,11 @@ def create_surface_style(
 def create_pbr_style(
     ctx: Context,
     name: str = "PBR Style",
-    diffuse_color: Optional[List[float]] = None,
+    diffuse_color: list[float] | None = None,
     metallic: float = 0.0,
     roughness: float = 0.5,
     transparency: float = 0.0,
-    emissive_color: Optional[List[float]] = None,
+    emissive_color: list[float] | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2533,7 +2535,7 @@ def create_pbr_style(
 @mcp.tool()
 def apply_style_to_object(
     ctx: Context,
-    object_guids: Union[str, List[str]],
+    object_guids: str | list[str],
     style_name: str,
     verbose: bool = False
 ) -> str:
@@ -2693,10 +2695,10 @@ def list_styles(ctx: Context) -> str:
 def update_style(
     ctx: Context,
     style_name: str,
-    color: Optional[List[float]] = None,
-    transparency: Optional[float] = None,
-    metallic: Optional[float] = None,
-    roughness: Optional[float] = None,
+    color: list[float] | None = None,
+    transparency: float | None = None,
+    metallic: float | None = None,
+    roughness: float | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2803,15 +2805,15 @@ def remove_style(
 @mcp.tool()
 def create_mesh_ifc(
     ctx: Context,
-    items: List[Dict[str, Any]],
+    items: list[dict[str, Any]],
     ifc_class: str = "IfcBuildingElementProxy",
-    name: Optional[str] = None,
-    predefined_type: Optional[str] = None,
-    placement: Optional[List[List[float]]] = None,
+    name: str | None = None,
+    predefined_type: str | None = None,
+    placement: list[list[float]] | None = None,
     force_faceted_brep: bool = False,
     apply_solidify: bool = False,
     solidify_thickness: float = 0.1,
-    properties: Optional[Dict[str, Any]] = None,
+    properties: dict[str, Any] | None = None,
     verbose: bool = False
 ) -> str:
     """
@@ -2899,7 +2901,7 @@ def create_mesh_ifc(
 
 
 @mcp.tool()
-def list_ifc_entities(ctx: Context, schema_version: Optional[str] = None) -> str:
+def list_ifc_entities(ctx: Context, schema_version: str | None = None) -> str:
     """
     List valid IFC entity classes for mesh generation.
     

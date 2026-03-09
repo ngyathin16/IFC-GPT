@@ -63,10 +63,24 @@ package-dir = {"" = "src"}
 
 [tool.ruff]
 target-version = "py310"
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/blender_addon/__init__.py" = ["E402", "F401", "F403"]
+"src/blender_addon/api/__init__.py" = ["E402", "F401", "F403"]
+"src/blender_addon/api/*.py" = ["E501", "E402", "F401", "E722", "SIM102", "SIM105", "SIM108", "B004", "B904", "B012", "F841", "F811", "UP045", "B007"]
+"src/blender_addon/commands.py" = ["E402", "F401", "F403"]
+"src/blender_addon/core.py" = ["E722", "SIM105", "B012"]
+"src/blender_addon/scene_analysis/__init__.py" = ["F403"]
+"src/blender_addon/scene_analysis/*.py" = ["E501", "SIM105", "SIM102", "SIM108", "B006", "B904", "B012", "E701", "F841", "UP045", "B007"]
+"src/blender_mcp/mcp_functions/api_tools.py" = ["E501"]
+"src/blender_mcp/mcp_functions/analysis_tools.py" = ["E501"]
+"src/blender_mcp/mcp_functions/rag_tools.py" = ["E501"]
+"src/blender_mcp/rag/retriever.py" = ["E501"]
+"src/blender_mcp/rag/vector_store.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"

@@ -10,20 +10,24 @@ Examples:
 """
 
 import math
-import numpy as np
-from typing import Any, Dict, List, Optional, Union, Tuple
 from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
 import ifcopenshell.util.unit
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, degrees_to_radians,
-    create_transformation_matrix, save_and_load_ifc, ensure_counter_clockwise
-)
+import numpy as np
 
 from . import register_command
-
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_transformation_matrix,
+    ensure_counter_clockwise,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 ROOF_TYPES = {
     "FLAT": "FLAT_ROOF",
@@ -58,11 +62,11 @@ class RoofProperties:
 
 
 def generate_roof_geometry(
-    polyline: List[List[float]], 
+    polyline: list[list[float]], 
     roof_type: str, 
     angle: float, 
     thickness: float
-) -> Tuple[List[Tuple[float, float, float]], List[List[int]]]:
+) -> tuple[list[tuple[float, float, float]], list[list[int]]]:
     """Generate roof vertices and faces based on type and parameters.
     
     Args:
@@ -206,7 +210,7 @@ def generate_roof_geometry(
 
 
 @register_command('get_roof_types', description="Get all supported roof types")
-def get_roof_types() -> Dict[str, Any]:
+def get_roof_types() -> dict[str, Any]:
     """Get all roof types with descriptions."""
     try:
         return {
@@ -224,16 +228,16 @@ def get_roof_types() -> Dict[str, Any]:
 
 @register_command('create_roof', description="Create roof from polyline outline using IFC mesh representation")
 def create_roof(
-    polyline: List[List[float]],
+    polyline: list[list[float]],
     roof_type: str = "FLAT",
     angle: float = 30.0,
     thickness: float = 0.3,
-    name: Optional[str] = None,
-    rotation: Optional[List[float]] = None,  # [rx, ry, rz] in degrees
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    unit_scale: Optional[float] = None,
+    name: str | None = None,
+    rotation: list[float] | None = None,  # [rx, ry, rz] in degrees
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    unit_scale: float | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create parametric IfcRoof using add_mesh_representation.
     
     Args:
@@ -407,12 +411,12 @@ def create_roof(
 @register_command('update_roof', description="Update existing roof properties")
 def update_roof(
     roof_guid: str,
-    roof_type: Optional[str] = None,
-    angle: Optional[float] = None,
-    thickness: Optional[float] = None,
-    name: Optional[str] = None,
+    roof_type: str | None = None,
+    angle: float | None = None,
+    thickness: float | None = None,
+    name: str | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Updates the properties and geometry of a roof element in an IFC file.
     This function allows updating the roof's type, angle, thickness, and name.
@@ -498,7 +502,7 @@ def update_roof(
 
 
 @register_command('delete_roof', description="Delete roofs by GUID")
-def delete_roof(roof_guids: List[str]) -> Dict[str, Any]:
+def delete_roof(roof_guids: list[str]) -> dict[str, Any]:
     """Delete roofs by their IFC GUIDs.
     
     Args:

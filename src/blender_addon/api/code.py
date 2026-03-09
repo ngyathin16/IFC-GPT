@@ -4,17 +4,16 @@ Provides sandboxed Python code execution with restrictions on Blender API access
 while allowing full IFC OpenShell functionality.
 """
 
-import io
-import traceback
 import ast
 import html
-import re
-import json
-import signal
+import io
 import logging
 import platform
-from contextlib import redirect_stdout, contextmanager
-from typing import List, Dict, Any, Optional
+import signal
+import traceback
+from contextlib import contextmanager, redirect_stdout
+from typing import Any
+
 from . import register_command
 
 try:
@@ -113,7 +112,7 @@ def create_safe_import(blacklisted_modules):
 
 class _ThreatVisitor(ast.NodeVisitor):
     def __init__(self, blacklisted_modules: set = None):
-        self.issues: List[str] = []
+        self.issues: list[str] = []
         self._blacklisted = blacklisted_modules if blacklisted_modules is not None else BLACKLISTED_MODULES
 
     def visit_Import(self, node):
@@ -179,7 +178,7 @@ class _ThreatVisitor(ast.NodeVisitor):
         return None
 
 
-def detect_threats(code: str, blacklisted_modules: set = None) -> List[str]:
+def detect_threats(code: str, blacklisted_modules: set = None) -> list[str]:
     """Parse code and return security threat descriptions."""
     try:
         tree = ast.parse(code)
@@ -211,9 +210,8 @@ def execute_code(code: str) -> dict:
         
         output_buffer = io.StringIO()
         
-        with execution_timeout(60):
-            with redirect_stdout(output_buffer):
-                exec(code, exec_globals)
+        with execution_timeout(60), redirect_stdout(output_buffer):
+            exec(code, exec_globals)
         
         output = output_buffer.getvalue()
         logger.info("Blender code executed successfully")
@@ -237,7 +235,7 @@ def ping() -> str:
 
 
 @register_command('execute_ifc_code', description="Execute IFC OpenShell Python code with security checks")
-def execute_ifc_code(code: str) -> Dict[str, Any]:
+def execute_ifc_code(code: str) -> dict[str, Any]:
     """
     Execute IFC OpenShell Python code with relaxed restrictions for IFC operations.
     
@@ -337,16 +335,15 @@ def execute_ifc_code(code: str) -> Dict[str, Any]:
 
         output_buffer = io.StringIO()
 
-        with execution_timeout(60):
-            with redirect_stdout(output_buffer):
-                try:
-                    exec(code, exec_globals)
-                except Exception as exec_error:
-                    return {
-                        "status": "error",
-                        "error": f"Execution failed: {str(exec_error)}",
-                        "traceback": traceback.format_exc()
-                    }
+        with execution_timeout(60), redirect_stdout(output_buffer):
+            try:
+                exec(code, exec_globals)
+            except Exception as exec_error:
+                return {
+                    "status": "error",
+                    "error": f"Execution failed: {str(exec_error)}",
+                    "traceback": traceback.format_exc()
+                }
 
         output = output_buffer.getvalue()
         

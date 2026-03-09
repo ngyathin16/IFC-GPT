@@ -29,25 +29,22 @@ Performance Characteristics:
 """
 
 import json
-import time
 import os
 import threading
-import sys
-import io
-import contextlib
-from typing import Optional, List, Dict, Any
+import time
 from pathlib import Path
+from typing import Any
 
 from ..mcp_instance import mcp
-from ..rag import IFCDocumentParser, IFCKnowledgeStore, IFCKnowledgeRetriever
+from ..rag import IFCKnowledgeRetriever, IFCKnowledgeStore
 from ..rag.retriever import RetrievalContext
 
-_knowledge_store: Optional[IFCKnowledgeStore] = None
-_retriever: Optional[IFCKnowledgeRetriever] = None
+_knowledge_store: IFCKnowledgeStore | None = None
+_retriever: IFCKnowledgeRetriever | None = None
 _fully_initialized: bool = False
-_init_error: Optional[str] = None
-_init_stats: Dict[str, Any] = {}
-_init_thread: Optional[threading.Thread] = None
+_init_error: str | None = None
+_init_stats: dict[str, Any] = {}
+_init_thread: threading.Thread | None = None
 _init_started_at: float = 0.0
 _init_lock = threading.Lock()
 _init_stage: str = "idle"
@@ -57,8 +54,8 @@ _PERSIST_DIR = _PROJECT_ROOT / ".cache" / "chromadb"
 _METADATA_FILE = _PERSIST_DIR / "ifc_knowledge_metadata.json"
 _EMBED_CACHE_DIR = _PROJECT_ROOT / ".cache" / "huggingface"
 
-_function_cache: Dict[str, List[Dict]] = {}
-_module_info_cache: Dict[str, Dict] = {}
+_function_cache: dict[str, list[dict]] = {}
+_module_info_cache: dict[str, dict] = {}
 
 
 def _is_fully_ready() -> bool:
@@ -66,7 +63,7 @@ def _is_fully_ready() -> bool:
     return _fully_initialized and _knowledge_store is not None and _retriever is not None and _init_error is None
 
 
-def _get_initialization_stats() -> Dict[str, Any]:
+def _get_initialization_stats() -> dict[str, Any]:
     """Get cached initialization statistics."""
     return _init_stats.copy()
 
@@ -83,7 +80,7 @@ def _index_exists() -> bool:
         return False
 
 
-def _pre_warm_system(store, retriever) -> Dict[str, float]:
+def _pre_warm_system(store, retriever) -> dict[str, float]:
     """Pre-warm all components and cache common operations."""
     timings = {}
     
@@ -191,7 +188,7 @@ def ensure_ifc_knowledge_ready(
                     
 
                     _init_stage = 'load_embeddings'
-                    store_box: Dict[str, Any] = {}
+                    store_box: dict[str, Any] = {}
                     
                     def _load_store():
                         try:
@@ -216,7 +213,7 @@ def ensure_ifc_knowledge_ready(
                     store = store_box['store']
 
                     _init_stage = 'build_index'
-                    build_box: Dict[str, Any] = {}
+                    build_box: dict[str, Any] = {}
                     
                     def _build():
                         try:
@@ -302,8 +299,8 @@ def ensure_ifc_knowledge_ready(
 @mcp.tool()
 def search_ifc_knowledge(
     query: str,
-    context_type: Optional[str] = None,
-    module: Optional[str] = None,
+    context_type: str | None = None,
+    module: str | None = None,
     max_results: int = 5
 ) -> str:
     """Search the IFC OpenShell knowledge base for functions, modules, and documentation.
@@ -510,8 +507,8 @@ def get_ifc_knowledge_status() -> str:
 @mcp.tool()
 def find_ifc_function(
     operation: str,
-    object_type: Optional[str] = None,
-    module: Optional[str] = None
+    object_type: str | None = None,
+    module: str | None = None
 ) -> str:
     """Find IFC functions by operation type and object type - instant operation after initialization.
     
@@ -714,7 +711,7 @@ def get_ifc_module_info(module_name: str) -> str:
 @mcp.tool()
 def get_ifc_function_details(
     function_name: str,
-    module: Optional[str] = None
+    module: str | None = None
 ) -> str:
     """Get detailed information about a specific IFC function - instant operation after initialization.
     
@@ -918,7 +915,7 @@ def get_cache_statistics() -> str:
     }
     
     query_types = {}
-    for cache_key in _function_cache.keys():
+    for cache_key in _function_cache:
         key_type = cache_key.split(':')[0]
         query_types[key_type] = query_types.get(key_type, 0) + 1
     

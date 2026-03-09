@@ -6,15 +6,15 @@ optimization and base64 encoding for data URIs.
 """
 
 from __future__ import annotations
-import bpy
-import math
-import mathutils
-import tempfile
-import os
+
 import base64
+import math
+import os
+import tempfile
 import time
-import traceback
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
+import bpy
 
 try:
     from PIL import Image
@@ -26,7 +26,8 @@ except ImportError:
     RESAMPLE = None
 
 from bpy_extras import view3d_utils
-from mathutils import Vector, Euler
+from mathutils import Euler, Vector
+
 from ..api import register_command
 
 ALLOWED_FORMATS = {"PNG", "JPEG", "WEBP"}
@@ -42,7 +43,7 @@ def cleanup_temp_files(*file_paths) -> None:
                 pass
 
 
-def validate_screenshot_params(format: str, quality: int, max_size: Optional[int]) -> Optional[str]:
+def validate_screenshot_params(format: str, quality: int, max_size: int | None) -> str | None:
     """Validate common screenshot parameters.
     
     Returns:
@@ -102,7 +103,7 @@ def get_largest_3d_viewport():
     return best
 
 
-def get_3d_viewport(area_index: Optional[int] = None):
+def get_3d_viewport(area_index: int | None = None):
     """Get 3D viewport by index or return the largest available viewport.
     
     Args:
@@ -134,7 +135,7 @@ def get_3d_viewport(area_index: Optional[int] = None):
         return None
 
 
-def get_viewport_info(space, region_3d) -> Dict[str, Any]:
+def get_viewport_info(space, region_3d) -> dict[str, Any]:
     """Extract viewport information from space and region_3d objects.
     
     Args:
@@ -155,7 +156,7 @@ def get_viewport_info(space, region_3d) -> Dict[str, Any]:
     }
 
 
-def resize_image(img, max_size: Optional[int]):
+def resize_image(img, max_size: int | None):
     """Resize image if it exceeds the maximum size constraint.
     
     Args:
@@ -251,13 +252,13 @@ def save_image(img, fmt: str, quality: int, temp_dir: str, prefix: str):
 
 @register_command('capture_blender_window_screenshot', description="Capture the entire Blender application window")
 def capture_blender_window_screenshot(
-    max_size: Optional[int] = None,
+    max_size: int | None = None,
     format: str = 'PNG',
     quality: int = 95,
     return_image_data: bool = True,
     include_data_uri: bool = False,
     keep_file: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Capture a screenshot of the entire Blender application window.
     
     Args:
@@ -340,18 +341,18 @@ def capture_blender_window_screenshot(
         
 @register_command('capture_blender_3dviewport_screenshot', description="Capture only the Blender 3D viewport")
 def capture_blender_3dviewport_screenshot(
-    max_size: Optional[int] = None,
+    max_size: int | None = None,
     format: str = 'PNG',
     quality: int = 95,
     return_image_data: bool = True,
     include_data_uri: bool = False,
     keep_file: bool = False,
-    area_index: Optional[int] = None,
-    shading_type: Optional[str] = None,
-    show_overlays: Optional[bool] = None,
-    show_gizmo: Optional[bool] = None,
+    area_index: int | None = None,
+    shading_type: str | None = None,
+    show_overlays: bool | None = None,
+    show_gizmo: bool | None = None,
     deterministic: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Capture a screenshot of only the 3D viewport region.
     
     Args:
@@ -489,7 +490,7 @@ def capture_blender_3dviewport_screenshot(
 
 
 @register_command('get_viewport_description', description="Generate a natural language description of the current 3D viewport")
-def get_viewport_description(area_index: Optional[int] = None) -> Dict[str, Any]:
+def get_viewport_description(area_index: int | None = None) -> dict[str, Any]:
     """Generate a natural language description of the current 3D viewport for LLM context.
     
     This function provides a textual summary of the viewport's appearance, including
@@ -565,7 +566,7 @@ def get_viewport_description(area_index: Optional[int] = None) -> Dict[str, Any]
     except Exception as e:
         return {"success": False, "error": f"Viewport description failed: {e}"}
 
-def _get_view3d(area_index: Optional[int] = None) -> Tuple[
+def _get_view3d(area_index: int | None = None) -> tuple[
     bpy.types.Window, bpy.types.Area, bpy.types.Region, bpy.types.SpaceView3D
 ]:
     """Return (window, area, region[WINDOW], space) for a VIEW_3D editor."""
@@ -588,7 +589,7 @@ def _get_view3d(area_index: Optional[int] = None) -> Tuple[
     return win, area, region, space
 
 
-def _gather_view_info(space: bpy.types.SpaceView3D) -> Dict[str, Any]:
+def _gather_view_info(space: bpy.types.SpaceView3D) -> dict[str, Any]:
     """Extract and package current view information."""
     r3d = space.region_3d
     e = r3d.view_rotation.to_euler()
@@ -608,7 +609,7 @@ def _gather_view_info(space: bpy.types.SpaceView3D) -> Dict[str, Any]:
 def rotate_viewport(rotation_x: float = 0,
                     rotation_y: float = 0,
                     rotation_z: float = 0,
-                    area_index: Optional[int] = None) -> Dict[str, Any]:
+                    area_index: int | None = None) -> dict[str, Any]:
     """
     Incrementally rotate the viewport by the given Euler angles (degrees).
     X = orbit up/down, Y = orbit left/right, Z = roll.
@@ -665,11 +666,11 @@ def rotate_viewport(rotation_x: float = 0,
 
 @register_command('set_viewport_view', description="Set viewport view axis (FRONT/BACK/LEFT/RIGHT/TOP/BOTTOM/USER/CAMERA)")
 def set_viewport_view(view_type: str = "USER",
-                      area_index: Optional[int] = None,
+                      area_index: int | None = None,
                       align_active: bool = False,
                       relative: bool = False,
                       frame: str = "none"  # 'none' | 'selected' | 'all' | 'all_center'
-                      ) -> Dict[str, Any]:
+                      ) -> dict[str, Any]:
     """
     Set the viewport to a predefined orientation. Supports 'CAMERA'.
     Optionally recenter the view via `frame`:
@@ -732,9 +733,9 @@ def set_viewport_view(view_type: str = "USER",
 
 @register_command('zoom_viewport', description="Zoom the 3D viewport by a factor")
 def zoom_viewport(zoom_factor: float = 1.1,
-                  area_index: Optional[int] = None,
+                  area_index: int | None = None,
                   method: str = "auto"  # 'auto' | 'operator' | 'distance'
-                  ) -> Dict[str, Any]:
+                  ) -> dict[str, Any]:
     """
     Zoom the 3D viewport by the specified factor.
       - zoom_factor > 1.0 -> zoom in
@@ -789,9 +790,10 @@ def execute_keyboard_shortcut(shortcut: str,
     Execute Blender keyboard shortcuts with robust, mode-aware handling.
     Keeps the same external behavior and return shape as your original.
     """
-    import bpy
     from functools import lru_cache
     from math import radians
+
+    import bpy
 
     EVENT_VALUES = {"PRESS", "RELEASE", "CLICK", "DOUBLE_CLICK", "ANY"}
 
@@ -1168,9 +1170,7 @@ def execute_keyboard_shortcut(shortcut: str,
                         if idname.startswith(("image.", "uv.")):
                             score += 150
 
-                    if current_mode == "OBJECT" and idname.startswith("object."):
-                        score += 60
-                    elif current_mode.startswith("EDIT_") and idname.startswith(("mesh.", "curve.", "surface.")):
+                    if current_mode == "OBJECT" and idname.startswith("object.") or current_mode.startswith("EDIT_") and idname.startswith(("mesh.", "curve.", "surface.")):
                         score += 60
                     elif "PAINT" in current_mode and idname.startswith("paint."):
                         score += 30
@@ -1229,7 +1229,7 @@ def execute_keyboard_shortcut(shortcut: str,
 
 
 @register_command('set_3d_cursor', description="Set the 3D cursor position")
-def set_3d_cursor(location: List[float] = [0.0, 0.0, 0.0]) -> Dict[str, Any]:
+def set_3d_cursor(location: list[float] = [0.0, 0.0, 0.0]) -> dict[str, Any]:
     """Set the 3D cursor to a specific world coordinate location.
     
     Args:
@@ -1261,16 +1261,16 @@ def set_3d_cursor(location: List[float] = [0.0, 0.0, 0.0]) -> Dict[str, Any]:
 def capture_multiview_viewport(
     num_views: int = 6,
     yaw_degrees: float = 360.0,
-    max_size: Optional[int] = None,
+    max_size: int | None = None,
     format: str = 'PNG',
     quality: int = 95,
-    area_index: Optional[int] = None,
+    area_index: int | None = None,
     deterministic: bool = True,
     stitch: bool = False,
     return_image_data: bool = True,
     include_data_uri: bool = False,
     keep_file: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Capture multiple viewport screenshots at evenly spaced yaw rotations.
     
     Args:
@@ -1299,8 +1299,8 @@ def capture_multiview_viewport(
         r3d = space.region_3d
 
         start_quat = r3d.view_rotation.copy()
-        images: List[Dict[str, Any]] = []
-        angles: List[float] = []
+        images: list[dict[str, Any]] = []
+        angles: list[float] = []
         step = (yaw_degrees / max(1, num_views)) if num_views > 0 else 0.0
 
         for i in range(num_views):
@@ -1413,13 +1413,13 @@ def capture_multiview_viewport(
 
 @register_command('project_objects_to_2d', description="Project object bounding boxes to 2D viewport coordinates")
 def project_objects_to_2d(
-    area_index: Optional[int] = None,
+    area_index: int | None = None,
     only_visible: bool = True,
-    include_types: Optional[List[str]] = None,
-    exclude_types: Optional[List[str]] = None,
-    include_objects: Optional[List[str]] = None,
-    exclude_objects: Optional[List[str]] = None,
-) -> Dict[str, Any]:
+    include_types: list[str] | None = None,
+    exclude_types: list[str] | None = None,
+    include_objects: list[str] | None = None,
+    exclude_objects: list[str] | None = None,
+) -> dict[str, Any]:
     """Project 3D object bounding boxes to 2D viewport pixel coordinates.
     
     Args:
@@ -1450,7 +1450,7 @@ def project_objects_to_2d(
         include_set = set(include_objects) if include_objects else None
         exclude_set = set(exclude_objects) if exclude_objects else set()
 
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
         for obj in objs:
             if include_set is not None and obj.name not in include_set:
                 continue
@@ -1468,7 +1468,7 @@ def project_objects_to_2d(
             except Exception:
                 continue
             
-            pts2d: List[Tuple[float, float]] = []
+            pts2d: list[tuple[float, float]] = []
             for co in corners:
                 v2 = view3d_utils.location_3d_to_region_2d(region, r3d, co)
                 if v2 is not None:
@@ -1508,7 +1508,7 @@ def project_objects_to_2d(
 
 
 @register_command('get_scene_summary', description="Get counts, extents, units, and camera info for the scene")
-def get_scene_summary() -> Dict[str, Any]:
+def get_scene_summary() -> dict[str, Any]:
     """Generate a comprehensive summary of the current Blender scene.
     
     Returns:
@@ -1517,7 +1517,7 @@ def get_scene_summary() -> Dict[str, Any]:
     """
     try:
         scene = bpy.context.scene
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         min_v = Vector((float('inf'), float('inf'), float('inf')))
         max_v = Vector((float('-inf'), float('-inf'), float('-inf')))
         has_extents = False
@@ -1651,7 +1651,7 @@ def ensure_camera_exists() -> bool:
 
 
 @register_command('add_camera_to_scene', description="Add a camera to the scene positioned to view all objects")
-def add_camera_to_scene() -> Dict[str, Any]:
+def add_camera_to_scene() -> dict[str, Any]:
     """Add a camera to the scene and position it to frame all visible objects.
     
     Returns:
@@ -1683,7 +1683,7 @@ def capture_render_with_passes(
     enable_object_index: bool = False,
     keep_files: bool = False,
     auto_add_camera: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Render the scene with multiple render passes saved to EXR and PNG formats.
     
     Args:
@@ -1765,7 +1765,7 @@ def capture_render_with_passes(
         except Exception as e:
             return {"success": False, "error": f"Failed to save PNG preview: {str(e)}"}
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "success": True,
             "data": {
                 "exr_path": exr_path if keep_files else None,

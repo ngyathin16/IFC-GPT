@@ -16,47 +16,45 @@ Requirements:
     - ifcopenshell: For IFC file creation and management
     - numpy: For numerical operations
 """
-import ifcopenshell
-import ifcopenshell.api
-from typing import Dict, Any, Optional, List, Tuple, Union
 import traceback
-import tempfile
-import os
-import sys
-import numpy as np
 from dataclasses import dataclass
+from typing import Any
+
+import numpy as np
 
 try:
     import trimesh
+    import trimesh.creation
     import trimesh.primitives
     import trimesh.transformations
-    import trimesh.creation
     TRIMESH_AVAILABLE = True
 except ImportError:
     TRIMESH_AVAILABLE = False
     trimesh = None
 
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context,
-    calculate_unit_scale, save_and_load_ifc
-)
 from . import register_command
+from .ifc_utils import (
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 
 @dataclass
 class TrimeshResult:
     """Result from Trimesh code execution"""
     success: bool
-    mesh: Optional[Any] = None  # Trimesh object
-    vertices: Optional[List[Tuple[float, float, float]]] = None
-    faces: Optional[List[List[int]]] = None
-    error: Optional[str] = None
-    code_executed: Optional[str] = None
-    warnings: List[str] = None
+    mesh: Any | None = None  # Trimesh object
+    vertices: list[tuple[float, float, float]] | None = None
+    faces: list[list[int]] | None = None
+    error: str | None = None
+    code_executed: str | None = None
+    warnings: list[str] = None
 
 
 def execute_trimesh_code(code: str, 
-                        parameters: Optional[Dict[str, Any]] = None,
+                        parameters: dict[str, Any] | None = None,
                         timeout: int = 30) -> TrimeshResult:
     """
     Execute Trimesh code safely and extract mesh data.
@@ -78,8 +76,8 @@ def execute_trimesh_code(code: str,
     warnings = []
     
     try:
-        import io
         import contextlib
+        import io
 
         captured_output = io.StringIO()
 
@@ -146,7 +144,7 @@ def execute_trimesh_code(code: str,
         )
 
 
-def extract_mesh_from_trimesh(mesh_obj) -> Tuple[List[Tuple[float, float, float]], List[List[int]]]:
+def extract_mesh_from_trimesh(mesh_obj) -> tuple[list[tuple[float, float, float]], list[list[int]]]:
     """
     Extract mesh data (vertices and faces) from a Trimesh object.
     
@@ -178,7 +176,7 @@ def extract_mesh_from_trimesh(mesh_obj) -> Tuple[List[Tuple[float, float, float]
         raise Exception(f"Failed to extract mesh from Trimesh object: {str(e)}")
 
 
-def check_code_for_print_statements(code: str) -> List[str]:
+def check_code_for_print_statements(code: str) -> list[str]:
     """Check if code contains print statements that could interfere with JSON responses."""
     warnings = []
     lines = code.split('\n')
@@ -190,7 +188,7 @@ def check_code_for_print_statements(code: str) -> List[str]:
     return warnings
 
 
-def validate_trimesh_mesh(mesh_obj) -> Tuple[bool, str]:
+def validate_trimesh_mesh(mesh_obj) -> tuple[bool, str]:
     """
     Validate a Trimesh object for common issues.
     
@@ -227,13 +225,13 @@ def validate_trimesh_mesh(mesh_obj) -> Tuple[bool, str]:
 def create_trimesh_ifc(
     trimesh_code: str,
     ifc_class: str = "IfcBuildingElementProxy",
-    name: Optional[str] = None,
-    predefined_type: Optional[str] = None,
-    placement: Optional[List[List[float]]] = None,
-    parameters: Optional[Dict[str, Any]] = None,
-    properties: Optional[Dict[str, Any]] = None,
+    name: str | None = None,
+    predefined_type: str | None = None,
+    placement: list[list[float]] | None = None,
+    parameters: dict[str, Any] | None = None,
+    properties: dict[str, Any] | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create an IFC element from Trimesh Python code.
     
@@ -485,7 +483,7 @@ def create_trimesh_ifc(
         }
 
 
-def check_code_for_print_statements(code: str) -> List[str]:
+def check_code_for_print_statements(code: str) -> list[str]:
     """
     Check Trimesh code for problematic print statements that will cause JSON errors.
     
@@ -509,9 +507,9 @@ def check_code_for_print_statements(code: str) -> List[str]:
 @register_command('validate_trimesh_code', description="Validate Trimesh code without creating IFC")
 def validate_trimesh_code(
     trimesh_code: str,
-    parameters: Optional[Dict[str, Any]] = None,
+    parameters: dict[str, Any] | None = None,
     extract_mesh: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Validate Trimesh code and optionally extract mesh information.
     
@@ -582,7 +580,7 @@ def validate_trimesh_code(
 
 
 @register_command('get_trimesh_examples', description="Get example Trimesh code for various shapes")
-def get_trimesh_examples() -> Dict[str, Any]:
+def get_trimesh_examples() -> dict[str, Any]:
     """
     Get example Trimesh code for various architectural and building elements.
     
@@ -998,7 +996,7 @@ This geometry will be automatically converted to IFC mesh representation.
 
 
 @register_command('get_trimesh_help', description="Get comprehensive help for using Trimesh")
-def get_trimesh_help_command() -> Dict[str, Any]:
+def get_trimesh_help_command() -> dict[str, Any]:
     """
     Get comprehensive help for using Trimesh in IFC generation.
     

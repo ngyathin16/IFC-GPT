@@ -4,21 +4,21 @@ This module allows LLMs to provide mesh data in JSON format that is then
 converted into IFC objects with any specified IFC class.
 """
 
-import ifcopenshell
-import ifcopenshell.api
-import ifcopenshell.util.unit
-import ifcopenshell.util.schema
-from typing import Dict, Any, Optional, List, Tuple, Union
 import math
 import traceback
-import json
 from dataclasses import dataclass
+from typing import Any
+
+import ifcopenshell
+import ifcopenshell.api
+import ifcopenshell.util.schema
+import ifcopenshell.util.unit
 import numpy as np
 
 try:
-    import bpy
     import bmesh
-    from mathutils import Vector, Matrix
+    import bpy
+    from mathutils import Matrix, Vector
     BLENDER_AVAILABLE = True
 except ImportError:
     BLENDER_AVAILABLE = False
@@ -27,32 +27,34 @@ except ImportError:
     Vector = None
     Matrix = None
 
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context,
-    calculate_unit_scale, save_and_load_ifc
-)
 from . import register_command
+from .ifc_utils import (
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 
 @dataclass
 class MeshItem:
     """A single mesh item with vertices and faces"""
-    vertices: List[Tuple[float, float, float]]
-    faces: List[List[int]]  # Simple face indices only - no nested arrays
+    vertices: list[tuple[float, float, float]]
+    faces: list[list[int]]  # Simple face indices only - no nested arrays
 
 @dataclass 
 class MeshData:
     """Mesh data structure for IFC conversion"""
-    items: List[MeshItem]
-    name: Optional[str] = None
+    items: list[MeshItem]
+    name: str | None = None
     ifc_class: str = "IfcBuildingElementProxy"
-    predefined_type: Optional[str] = None
-    placement: Optional[List[List[float]]] = None  # 4x4 matrix
-    properties: Optional[Dict[str, Any]] = None
+    predefined_type: str | None = None
+    placement: list[list[float]] | None = None  # 4x4 matrix
+    properties: dict[str, Any] | None = None
     force_faceted_brep: bool = False
 
 
-def get_valid_ifc_classes(schema_version: str = "IFC4") -> Dict[str, str]:
+def get_valid_ifc_classes(schema_version: str = "IFC4") -> dict[str, str]:
     """Get valid IFC element classes for the current schema"""
     try:
         ifc_file = get_ifc_file()
@@ -94,7 +96,7 @@ def get_valid_ifc_classes(schema_version: str = "IFC4") -> Dict[str, str]:
             "ROOF": "IfcRoof"
         }
 
-def validate_ifc_class(class_name: str) -> Tuple[bool, str]:
+def validate_ifc_class(class_name: str) -> tuple[bool, str]:
     """Validate and canonicalize IFC class name"""
     valid_classes = get_valid_ifc_classes()
     
@@ -110,9 +112,9 @@ def validate_ifc_class(class_name: str) -> Tuple[bool, str]:
     return False, None
 
 
-def sanitize_mesh_data(vertices: List[Tuple[float, float, float]], 
-                       faces: List[List[int]], 
-                       epsilon: float = 1e-6) -> Tuple[List[Tuple[float, float, float]], List[List[int]], List[str]]:
+def sanitize_mesh_data(vertices: list[tuple[float, float, float]], 
+                       faces: list[list[int]], 
+                       epsilon: float = 1e-6) -> tuple[list[tuple[float, float, float]], list[list[int]], list[str]]:
     """
     Sanitize and validate mesh data.
     
@@ -177,9 +179,9 @@ def sanitize_mesh_data(vertices: List[Tuple[float, float, float]],
     return clean_vertices, clean_faces, warnings
 
 
-def apply_solidify_blender(vertices: List[Tuple[float, float, float]],
-                          faces: List[List[int]],
-                          thickness: float = 0.1) -> Tuple[List[Tuple[float, float, float]], List[List[int]]]:
+def apply_solidify_blender(vertices: list[tuple[float, float, float]],
+                          faces: list[list[int]],
+                          thickness: float = 0.1) -> tuple[list[tuple[float, float, float]], list[list[int]]]:
     """
     Apply solidification to mesh using Blender (only if available).
     
@@ -224,17 +226,17 @@ def apply_solidify_blender(vertices: List[Tuple[float, float, float]],
 
 @register_command('create_mesh_ifc', description="Create IFC element from JSON mesh data")
 def create_mesh_ifc(
-    items: List[Dict[str, Any]],
+    items: list[dict[str, Any]],
     ifc_class: str = "IfcBuildingElementProxy",
-    name: Optional[str] = None,
-    predefined_type: Optional[str] = None,
-    placement: Optional[List[List[float]]] = None,
+    name: str | None = None,
+    predefined_type: str | None = None,
+    placement: list[list[float]] | None = None,
     force_faceted_brep: bool = False,
     apply_solidify: bool = False,
     solidify_thickness: float = 0.1,
-    properties: Optional[Dict[str, Any]] = None,
+    properties: dict[str, Any] | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Create an IFC element from JSON mesh data.
     
@@ -424,7 +426,7 @@ def create_mesh_ifc(
 
 
 @register_command('list_ifc_entities', description="List valid IFC entity classes for the current schema")
-def list_ifc_entities(schema_version: Optional[str] = None) -> Dict[str, Any]:
+def list_ifc_entities(schema_version: str | None = None) -> dict[str, Any]:
     """
     List valid IFC entity classes for mesh generation.
     
@@ -458,8 +460,8 @@ def generate_parametric_mesh(
     length: float = 1.0,
     height: float = 1.0,
     segments: int = 10,
-    parameters: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+    parameters: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """
     Generate parametric mesh data for common shapes.
     
@@ -580,7 +582,7 @@ def generate_parametric_mesh(
         }
 
 
-def get_mesh_examples() -> Dict[str, Any]:
+def get_mesh_examples() -> dict[str, Any]:
     """
     Get example mesh data in JSON format for various object types.
     

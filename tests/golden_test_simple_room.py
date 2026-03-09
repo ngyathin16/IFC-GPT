@@ -11,7 +11,7 @@ import logging
 import math
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -197,12 +197,12 @@ def create_simple_room() -> str:
     return str(IFC_PATH)
 
 
-def _dist(a: List[float], b: List[float]) -> float:
+def _dist(a: list[float], b: list[float]) -> float:
     """Euclidean distance between two 3D points."""
     return math.sqrt(sum((b[i] - a[i]) ** 2 for i in range(3)))
 
 
-def _placement_matrix(start: List[float], end: List[float]):
+def _placement_matrix(start: list[float], end: list[float]):
     """Build a 4x4 placement matrix aligning the wall along start->end."""
     import numpy as np
 
@@ -215,9 +215,9 @@ def _placement_matrix(start: List[float], end: List[float]):
     return matrix
 
 
-def run_all_validations(ifc_path: str) -> Dict[str, Any]:
+def run_all_validations(ifc_path: str) -> dict[str, Any]:
     """Run schema, IDS, and semantic validation. Returns combined results."""
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
 
     try:
         from validate.schema_validate import validate_schema  # type: ignore[import]

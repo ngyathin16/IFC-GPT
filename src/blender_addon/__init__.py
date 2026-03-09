@@ -31,12 +31,10 @@ bl_info = {
 }
 
 import bpy
-from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
+from bpy.props import BoolProperty, EnumProperty, IntProperty, StringProperty
 
-from . import core
-from . import ui
-from . import commands
-from . import api
+from . import api, commands, core, ui
+
 
 def register():
     """Register the addon and its components with Blender"""

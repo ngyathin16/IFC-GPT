@@ -5,18 +5,22 @@ Examples:
     fill_opening(opening_guid="opening_guid", element_guid="element_guid")
     remove_opening(opening_guid="opening_guid", remove_filling=True)
 """
-from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass
-import numpy as np
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
+import numpy as np
 
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, create_transformation_matrix, save_and_load_ifc
-)
 from . import register_command
-
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_transformation_matrix,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 OPENING_TYPES = {
     "OPENING": "OPENING",
@@ -43,7 +47,7 @@ class OpeningProperties:
 
 
 @register_command('get_opening_types', description="Get all supported opening types")
-def get_opening_types() -> Dict[str, Any]:
+def get_opening_types() -> dict[str, Any]:
     """Get all opening types with descriptions."""
     try:
         return {
@@ -65,17 +69,17 @@ def create_opening(
     width: float = 1.0,
     height: float = 2.0,
     depth: float = 0.3,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    element_guid: Optional[str] = None,
-    wall_guid: Optional[str] = None,  # Alias for element_guid
-    slab_guid: Optional[str] = None,  # Alias for element_guid
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    element_guid: str | None = None,
+    wall_guid: str | None = None,  # Alias for element_guid
+    slab_guid: str | None = None,  # Alias for element_guid
     opening_type: str = "OPENING",
-    name: Optional[str] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    unit_scale: Optional[float] = None,
+    name: str | None = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    unit_scale: float | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a rectangular opening in a wall, slab, or other element.
     
     Args:
@@ -218,7 +222,7 @@ def fill_opening(
     opening_guid: str,
     element_guid: str,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Fill an opening with an element like a door or window.
     
     Args:
@@ -277,7 +281,7 @@ def remove_opening(
     opening_guid: str,
     remove_filling: bool = True,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Remove an opening and optionally its filling element.
     
     Args:
@@ -339,7 +343,7 @@ def remove_opening(
 def remove_filling(
     element_guid: str,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Remove filling relationship between element and opening.
     
     Both opening and element remain, but element no longer fills the opening.
@@ -379,7 +383,7 @@ def remove_filling(
 def get_element_openings(
     element_guid: str,
     include_fillings: bool = True
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get all openings (voids) in a specified element.
     
     Args:
@@ -439,7 +443,7 @@ def get_element_openings(
 
 
 @register_command('get_opening_info', description="Get detailed information about an opening")
-def get_opening_info(opening_guid: str) -> Dict[str, Any]:
+def get_opening_info(opening_guid: str) -> dict[str, Any]:
     """Get detailed information about a specific opening.
     
     Args:

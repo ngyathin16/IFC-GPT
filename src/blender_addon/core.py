@@ -6,12 +6,13 @@ Blender and external MCP clients, executing commands in Blender's main thread
 for safe interaction with the Blender API.
 """
 
-import bpy
 import json
-import threading
 import socket
+import threading
 import time
 import traceback
+
+import bpy
 
 server_instance = None
 
@@ -84,7 +85,7 @@ class BlenderMCPServer:
                     client_thread = threading.Thread(target=self._handle_client, args=(client,))
                     client_thread.daemon = True
                     client_thread.start()
-                except socket.timeout:
+                except TimeoutError:
                     continue
             except Exception as e:
                 print(f"Error in server loop: {str(e)}")

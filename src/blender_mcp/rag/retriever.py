@@ -1,8 +1,8 @@
 """Advanced retriever with query enhancement and re-ranking for IFC knowledge."""
 
 import re
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any
 
 from .vector_store import IFCKnowledgeStore
 
@@ -10,10 +10,10 @@ from .vector_store import IFCKnowledgeStore
 @dataclass
 class RetrievalContext:
     """Context for retrieval operations."""
-    current_module: Optional[str] = None
-    current_class: Optional[str] = None
-    previous_functions: Optional[List[str]] = None
-    task_description: Optional[str] = None
+    current_module: str | None = None
+    current_class: str | None = None
+    previous_functions: list[str] | None = None
+    task_description: str | None = None
     
     def __post_init__(self):
         if self.previous_functions is None:
@@ -57,10 +57,10 @@ class IFCKnowledgeRetriever:
     def retrieve(
         self,
         query: str,
-        context: Optional[RetrievalContext] = None,
+        context: RetrievalContext | None = None,
         k: int = 5,
         use_reranking: bool = True
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retrieve relevant IFC knowledge with query enhancement."""
         enhanced_query = self._enhance_query(query, context)
         filters = self._build_filters(query, context)
@@ -79,8 +79,8 @@ class IFCKnowledgeRetriever:
     def find_workflow(
         self,
         task_description: str,
-        context: Optional[RetrievalContext] = None
-    ) -> Dict[str, Any]:
+        context: RetrievalContext | None = None
+    ) -> dict[str, Any]:
         """Find a complete workflow for a given task."""
         operations = self._extract_operations(task_description)
         
@@ -111,8 +111,8 @@ class IFCKnowledgeRetriever:
     def suggest_next_function(
         self,
         context: RetrievalContext,
-        task_goal: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        task_goal: str | None = None
+    ) -> list[dict[str, Any]]:
         """Suggest the next function based on context."""
         query_parts = []
         
@@ -144,7 +144,7 @@ class IFCKnowledgeRetriever:
         
         return functions
     
-    def _enhance_query(self, query: str, context: Optional[RetrievalContext]) -> str:
+    def _enhance_query(self, query: str, context: RetrievalContext | None) -> str:
         """Enhance query with IFC terminology and context."""
         enhanced = query.lower()
         
@@ -173,8 +173,8 @@ class IFCKnowledgeRetriever:
     def _build_filters(
         self,
         query: str,
-        context: Optional[RetrievalContext]
-    ) -> Optional[Dict[str, Any]]:
+        context: RetrievalContext | None
+    ) -> dict[str, Any] | None:
         """Build metadata filters for search."""
         filters = {}
         
@@ -194,10 +194,10 @@ class IFCKnowledgeRetriever:
     
     def _rerank_results(
         self,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         query: str,
-        context: Optional[RetrievalContext]
-    ) -> List[Dict[str, Any]]:
+        context: RetrievalContext | None
+    ) -> list[dict[str, Any]]:
         """Re-rank results based on relevance."""
         scored_results = []
         
@@ -205,9 +205,7 @@ class IFCKnowledgeRetriever:
             score = 0
             metadata = result.get('metadata', {})
             
-            if 'function' in query.lower() and metadata.get('type') == 'function':
-                score += 2
-            elif 'module' in query.lower() and metadata.get('type') == 'module':
+            if 'function' in query.lower() and metadata.get('type') == 'function' or 'module' in query.lower() and metadata.get('type') == 'module':
                 score += 2
             
             if metadata.get('has_examples'):
@@ -233,7 +231,7 @@ class IFCKnowledgeRetriever:
         
         return [result for score, result in scored_results]
     
-    def _extract_operations(self, task_description: str) -> List[Dict[str, str]]:
+    def _extract_operations(self, task_description: str) -> list[dict[str, str]]:
         """Extract operations from task description."""
         operations = []
         task_lower = task_description.lower()

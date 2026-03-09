@@ -15,13 +15,14 @@ Features:
 - Delete IFC objects by GUID or current selection with special opening handling
 """
 
-from typing import List, Optional, Dict, Any, Union
+from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
-from dataclasses import dataclass
 
-from .ifc_utils import get_ifc_file, save_and_load_ifc, get_selected_guids
 from . import register_command
+from .ifc_utils import get_ifc_file, get_selected_guids, save_and_load_ifc
 
 
 @dataclass
@@ -29,13 +30,13 @@ class ElementDeletionResult:
     """Result data for IFC element deletion operations."""
     success: bool
     deleted_count: int
-    deleted_guids: List[str]
-    removed_fillings: List[str]
-    errors: List[str]
+    deleted_guids: list[str]
+    removed_fillings: list[str]
+    errors: list[str]
     message: str
 
 
-def _get_element_by_guid(ifc_file, guid: str) -> Optional[ifcopenshell.entity_instance]:
+def _get_element_by_guid(ifc_file, guid: str) -> ifcopenshell.entity_instance | None:
     """Retrieve an IFC element by its GlobalId.
     
     Args:
@@ -51,7 +52,7 @@ def _get_element_by_guid(ifc_file, guid: str) -> Optional[ifcopenshell.entity_in
         return None
 
 
-def _collect_elements(ifc_file, guids: Optional[List[str]], use_selection: bool) -> List[ifcopenshell.entity_instance]:
+def _collect_elements(ifc_file, guids: list[str] | None, use_selection: bool) -> list[ifcopenshell.entity_instance]:
     """Collect IFC elements from GUIDs and/or current Blender selection.
     
     Args:
@@ -95,7 +96,7 @@ def copy_class(
     copy_material: bool = True,
     copy_placement: bool = True,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Copy an IFC product with all its relationships and properties.
     
     Creates a duplicate of an existing IFC product while preserving:
@@ -146,7 +147,7 @@ def copy_class(
         if not hasattr(original, 'GlobalId'):
             return {
                 "success": False,
-                "error": f"Entity is not a rooted element with GlobalId",
+                "error": "Entity is not a rooted element with GlobalId",
                 "original_guid": product_guid,
                 "new_guid": None,
                 "class": original.is_a() if original else None,
@@ -198,10 +199,10 @@ def copy_class(
 def reassign_class(
     product_guid: str,
     new_ifc_class: str,
-    predefined_type: Optional[str] = None,
-    occurrence_class: Optional[str] = None,
+    predefined_type: str | None = None,
+    occurrence_class: str | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Change the IFC class of a product while retaining all relationships.
     
     This function is useful for fixing incorrectly classified elements imported
@@ -292,11 +293,11 @@ def reassign_class(
 
 @register_command('delete_ifc_objects', description="Delete IFC objects by GUID or current selection")
 def delete_ifc_objects(
-    guids: Optional[List[str]] = None,
+    guids: list[str] | None = None,
     use_selection: bool = False,
     remove_fillings: bool = True,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Delete IFC objects by GUID or current Blender selection.
     
     This function provides flexible deletion of IFC elements with special handling
@@ -320,9 +321,9 @@ def delete_ifc_objects(
     """
     ifc_file = get_ifc_file()
 
-    errors: List[str] = []
-    deleted_guids: List[str] = []
-    removed_fillings: List[str] = []
+    errors: list[str] = []
+    deleted_guids: list[str] = []
+    removed_fillings: list[str] = []
 
     try:
         targets = _collect_elements(ifc_file, guids, use_selection)

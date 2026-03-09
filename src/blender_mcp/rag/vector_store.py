@@ -11,11 +11,11 @@ Important: Do not print to stdout from MCP servers. Replace any print calls with
 logging so that messages go to stderr and do not corrupt the MCP stdio transport.
 """
 
-import os
-from typing import List, Dict, Any, Optional
-from pathlib import Path
 import json
 import logging
+import os
+from pathlib import Path
+from typing import Any
 
 try:
     from langchain_huggingface import HuggingFaceEmbeddings
@@ -27,10 +27,8 @@ try:
 except ImportError:
     from langchain_community.vectorstores import Chroma
 from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from .document_parser import IFCDocumentParser
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +59,7 @@ class RemoteEmbeddings:
         except Exception:
             self.chunk_size = 128
 
-    def _post(self, payload: Dict[str, Any]) -> Any:
-        import json as _json
+    def _post(self, payload: dict[str, Any]) -> Any:
         try:
             import requests  # type: ignore
         except Exception as e:
@@ -77,9 +74,9 @@ class RemoteEmbeddings:
         try:
             return resp.json()
         except Exception as e:
-            raise RuntimeError(f"Remote embeddings returned non-JSON response: {e}")
+            raise RuntimeError(f"Remote embeddings returned non-JSON response: {e}") from e
 
-    def _parse_vectors(self, data: Any, expect: int) -> List[List[float]]:
+    def _parse_vectors(self, data: Any, expect: int) -> list[list[float]]:
         if isinstance(data, dict):
             if 'embeddings' in data and isinstance(data['embeddings'], list):
                 return data['embeddings']
@@ -87,10 +84,10 @@ class RemoteEmbeddings:
                 return [item.get('embedding') for item in data['data'] if isinstance(item, dict) and 'embedding' in item]
         raise RuntimeError("Remote embeddings response format not recognized")
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
-        all_vectors: List[List[float]] = []
+        all_vectors: list[list[float]] = []
         for i in range(0, len(texts), self.chunk_size):
             chunk = texts[i:i + self.chunk_size]
             payload = {'inputs': chunk}
@@ -101,7 +98,7 @@ class RemoteEmbeddings:
             all_vectors.extend(vectors)
         return all_vectors
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         payload = {'inputs': [text]}
         data = self._post(payload)
         vectors = self._parse_vectors(data, expect=1)
@@ -115,7 +112,7 @@ class IFCKnowledgeStore:
     
     def __init__(
         self,
-        persist_directory: Optional[Path] = None,
+        persist_directory: Path | None = None,
         embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         collection_name: str = "ifc_knowledge"
     ):
@@ -232,7 +229,7 @@ class IFCKnowledgeStore:
         )
         logger.info("ChromaDB vector store initialized")
     
-    def build_index(self, api_docs_path: Optional[Path] = None, force_rebuild: bool = False):
+    def build_index(self, api_docs_path: Path | None = None, force_rebuild: bool = False):
         """
         Build or rebuild the vector index from API documentation.
         
@@ -336,9 +333,9 @@ class IFCKnowledgeStore:
         self,
         query: str,
         k: int = 5,
-        filter_dict: Optional[Dict[str, Any]] = None,
+        filter_dict: dict[str, Any] | None = None,
         search_type: str = "similarity"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search the knowledge base.
         
@@ -398,9 +395,9 @@ class IFCKnowledgeStore:
     def search_functions(
         self,
         operation: str,
-        module: Optional[str] = None,
+        module: str | None = None,
         k: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search for specific IFC functions.
         
@@ -439,7 +436,7 @@ class IFCKnowledgeStore:
         
         return functions
     
-    def get_module_info(self, module_name: str) -> Optional[Dict[str, Any]]:
+    def get_module_info(self, module_name: str) -> dict[str, Any] | None:
         """
         Get information about a specific module.
         
@@ -462,7 +459,7 @@ class IFCKnowledgeStore:
             return result
         return None
     
-    def get_function_info(self, function_name: str, module: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def get_function_info(self, function_name: str, module: str | None = None) -> dict[str, Any] | None:
         """
         Get detailed information about a specific function.
         
@@ -487,7 +484,7 @@ class IFCKnowledgeStore:
             return results[0]
         return None
     
-    def find_similar_functions(self, function_name: str, k: int = 5) -> List[Dict[str, Any]]:
+    def find_similar_functions(self, function_name: str, k: int = 5) -> list[dict[str, Any]]:
         """
         Find functions similar to a given function.
         
@@ -536,13 +533,13 @@ class IFCKnowledgeStore:
         with open(metadata_file, 'w') as f:
             json.dump(metadata, f, indent=2)
     
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get statistics about the knowledge store."""
         if not self._index_exists():
             return {'status': 'not_initialized'}
         
         metadata_file = self.persist_directory / f"{self.collection_name}_metadata.json"
-        with open(metadata_file, 'r') as f:
+        with open(metadata_file) as f:
             metadata = json.load(f)
         
         return {

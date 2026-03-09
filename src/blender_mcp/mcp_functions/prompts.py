@@ -4,6 +4,7 @@ Prompts
 
 from ..mcp_instance import mcp
 
+
 @mcp.prompt()
 def ifc_building_element_creation_strategy() -> str:
     """Defines the preferred strategy for creating IFC building elements"""

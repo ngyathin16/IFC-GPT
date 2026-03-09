@@ -7,8 +7,6 @@ Verifies:
 """
 
 import ast
-import importlib
-import sys
 from pathlib import Path
 
 import pytest
@@ -60,8 +58,9 @@ class TestServerImport:
 
     def test_mcp_instance_importable(self) -> None:
         """blender_mcp.mcp_instance must expose a FastMCP object named `mcp`."""
-        from blender_mcp.mcp_instance import mcp  # type: ignore[import]
         from mcp.server.fastmcp import FastMCP
+
+        from blender_mcp.mcp_instance import mcp  # type: ignore[import]
 
         assert isinstance(mcp, FastMCP)
 

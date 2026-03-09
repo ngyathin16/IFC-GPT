@@ -1,10 +1,10 @@
 """Document parser for IFC OpenShell API documentation."""
 
-import re
 import json
-from typing import List, Dict, Any, Optional
+import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -12,13 +12,13 @@ class IFCFunction:
     """Represents an IFC API function with metadata."""
     module: str
     name: str
-    signature: Optional[str]
-    docstring: Optional[str]
-    parameters: List[Dict[str, Any]]
-    return_type: Optional[str]
-    examples: List[str]
+    signature: str | None
+    docstring: str | None
+    parameters: list[dict[str, Any]]
+    return_type: str | None
+    examples: list[str]
     
-    def to_document(self) -> Dict[str, Any]:
+    def to_document(self) -> dict[str, Any]:
         """Convert to document format for vector storage."""
         content_parts = [
             f"Module: {self.module}",
@@ -67,9 +67,9 @@ class IFCModule:
     """Represents an IFC API module with metadata."""
     name: str
     description: str
-    functions: List[IFCFunction]
+    functions: list[IFCFunction]
     
-    def to_document(self) -> Dict[str, Any]:
+    def to_document(self) -> dict[str, Any]:
         """Convert module overview to document."""
         content = f"Module: {self.name}\nDescription: {self.description}\n"
         content += f"Available functions: {', '.join([f.name for f in self.functions])}"
@@ -89,19 +89,19 @@ class IFCModule:
 
 class IFCDocumentParser:
     """Parser for IFC OpenShell API documentation."""
-    def __init__(self, api_docs_path: Optional[Path] = None):
+    def __init__(self, api_docs_path: Path | None = None):
         """Initialize parser with path to ifcopenshell_api_docs.txt."""
         if api_docs_path is None:
             api_docs_path = Path(__file__).parent.parent.parent.parent / "docs" / "ifcopenshell_api_docs.txt"
         self.api_docs_path = api_docs_path
-        self.modules: List[IFCModule] = []
+        self.modules: list[IFCModule] = []
         
-    def parse(self) -> List[Dict[str, Any]]:
+    def parse(self) -> list[dict[str, Any]]:
         """Parse the API documentation and return structured documents."""
         if not self.api_docs_path.exists():
             raise FileNotFoundError(f"API docs not found at {self.api_docs_path}")
             
-        with open(self.api_docs_path, 'r', encoding='utf-8') as f:
+        with open(self.api_docs_path, encoding='utf-8') as f:
             content = f.read()
             
         self._parse_modules(content)
@@ -132,7 +132,7 @@ class IFCDocumentParser:
             )
             self.modules.append(module)
     
-    def _parse_functions(self, module_name: str, functions_section: str, full_content: str) -> List[IFCFunction]:
+    def _parse_functions(self, module_name: str, functions_section: str, full_content: str) -> list[IFCFunction]:
         """Parse functions for a module."""
         functions = []
         
@@ -190,7 +190,7 @@ class IFCDocumentParser:
             
         return functions
     
-    def _parse_parameters(self, docstring: str) -> List[Dict[str, Any]]:
+    def _parse_parameters(self, docstring: str) -> list[dict[str, Any]]:
         """Extract parameters from docstring."""
         parameters = []
         if not docstring:
@@ -210,7 +210,7 @@ class IFCDocumentParser:
             
         return parameters
     
-    def _extract_return_type(self, docstring: str) -> Optional[str]:
+    def _extract_return_type(self, docstring: str) -> str | None:
         """Extract return type from docstring."""
         if not docstring:
             return None
@@ -223,14 +223,14 @@ class IFCDocumentParser:
         
         return None
     
-    def get_module_functions(self, module_name: str) -> List[IFCFunction]:
+    def get_module_functions(self, module_name: str) -> list[IFCFunction]:
         """Get all functions for a specific module."""
         for module in self.modules:
             if module.name == module_name:
                 return module.functions
         return []
     
-    def search_functions(self, keyword: str) -> List[IFCFunction]:
+    def search_functions(self, keyword: str) -> list[IFCFunction]:
         """Search functions by keyword in name or docstring."""
         results = []
         keyword_lower = keyword.lower()

@@ -7,14 +7,17 @@ Model-friendly improvements:
 - Consistent geometry block in detailed object info.
 """
 
-import bpy
-import mathutils
 import traceback
-from . import register_command
-from typing import List, Optional, Dict, Any, Union
-from bonsai import tool
+from typing import Any
+
+import bpy
 import ifcopenshell
 import ifcopenshell.util.element
+import mathutils
+from bonsai import tool
+
+from . import register_command
+
 try:
     import ifcopenshell.util.unit as ifc_unit
 except Exception:
@@ -25,7 +28,7 @@ except Exception:
 def get_scene_info(
     limit: int = -1,
     offset: int = 0,
-    obj_type: Optional[str] = None,
+    obj_type: str | None = None,
     include_bbox: bool = False,
     include_transform: bool = False,
     round_decimals: int = 3,
@@ -55,7 +58,7 @@ def get_scene_info(
         objects = []
         for obj in selected_objects:
             r = round_decimals
-            obj_info: Dict[str, Any] = {
+            obj_info: dict[str, Any] = {
                 "name": obj.name,
                 "type": obj.type,
                 "location": [round(float(obj.location.x), r), 
@@ -122,7 +125,7 @@ def get_blender_object_info(object_name):
         if not obj:
             return {"error": f"Object not found: {object_name}"}
         
-        object_info: Dict[str, Any] = {
+        object_info: dict[str, Any] = {
             "name": obj.name,
             "type": obj.type,
             "location": [float(obj.location.x), float(obj.location.y), float(obj.location.z)],
@@ -172,7 +175,7 @@ def get_blender_object_info(object_name):
     
 
 @register_command('get_selected_objects', description="Get list of currently selected Blender objects with GUID information")
-def get_selected_objects() -> Dict[str, Any]:
+def get_selected_objects() -> dict[str, Any]:
     """Get list of currently selected Blender objects with their IFC GUIDs."""
     try:
         selected_objects = []
@@ -204,10 +207,10 @@ def get_selected_objects() -> Dict[str, Any]:
 
 @register_command('get_object_info', description="Get IFC object information")
 def get_object_info(
-    guids: Optional[Union[str, List[str]]] = None,
+    guids: str | list[str] | None = None,
     use_selection: bool = False,
     detailed: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get IFC object information from GUIDs or selection."""
     if isinstance(guids, str):
         guids = [guids]
@@ -219,7 +222,7 @@ def get_object_info(
     objects_info = []
     errors = []
     
-    def extract_object_info(element: ifcopenshell.entity_instance, blender_obj: Optional[bpy.types.Object], detailed: bool) -> Dict[str, Any]:
+    def extract_object_info(element: ifcopenshell.entity_instance, blender_obj: bpy.types.Object | None, detailed: bool) -> dict[str, Any]:
         info = {
             "guid": getattr(element, 'GlobalId', None),
             "ifc_class": element.is_a(),
@@ -379,7 +382,7 @@ def get_object_info(
 
 
 @register_command('get_ifc_scene_overview', description='Get comprehensive IFC scene overview')
-def get_ifc_scene_overview(include_selection_summary: bool = False) -> Dict[str, Any]:
+def get_ifc_scene_overview(include_selection_summary: bool = False) -> dict[str, Any]:
     """Return consolidated overview of the loaded IFC scene."""
     ifc_file = tool.Ifc.get()
     if not ifc_file:

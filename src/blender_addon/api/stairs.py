@@ -7,21 +7,24 @@ Examples:
     create_stairs(width=1.3, height=4.0, stairs_type="U_SHAPED", num_steps=24, landing_depth=1.5)
     create_simple_stairs(name="Main Stairs", width=1.2, length=4.0, height=3.0)
 """
-from typing import Any, Dict, List, Optional, Union, Tuple
-from dataclasses import dataclass
 import math
-import numpy as np
+from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
-
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, degrees_to_radians, create_transformation_matrix, 
-    save_and_load_ifc, ensure_counter_clockwise
-)
+import numpy as np
 
 from . import register_command
-
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_transformation_matrix,
+    ensure_counter_clockwise,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 STAIRS_TYPES = {
     "STRAIGHT": "STRAIGHT_RUN_STAIR",
@@ -47,9 +50,9 @@ class StairsProperties:
     num_steps: int = 15
     tread_depth: float = 0.25
     riser_height: float = 0.2
-    radius: Optional[float] = None
-    landing_width: Optional[float] = None
-    landing_depth: Optional[float] = None
+    radius: float | None = None
+    landing_width: float | None = None
+    landing_depth: float | None = None
 
 
 def generate_stairs_geometry(
@@ -58,11 +61,11 @@ def generate_stairs_geometry(
     height: float,
     num_steps: int,
     tread_depth: float = 0.25,
-    riser_height: Optional[float] = None,
-    radius: Optional[float] = None,
-    landing_width: Optional[float] = None,
-    landing_depth: Optional[float] = None
-) -> Tuple[List[Tuple[float, float, float]], List[List[int]]]:
+    riser_height: float | None = None,
+    radius: float | None = None,
+    landing_width: float | None = None,
+    landing_depth: float | None = None
+) -> tuple[list[tuple[float, float, float]], list[list[int]]]:
     """Generate stairs vertices and faces based on type and parameters.
     
     Args:
@@ -296,7 +299,7 @@ def _generate_u_shaped_stairs(width, height, num_steps, tread_depth, riser_heigh
 
 
 @register_command('get_stairs_types', description="Get all supported stairs types")
-def get_stairs_types() -> Dict[str, Any]:
+def get_stairs_types() -> dict[str, Any]:
     """Get all stairs types with descriptions."""
     try:
         return {
@@ -317,19 +320,19 @@ def create_stairs(
     width: float,
     height: float,
     stairs_type: str = "STRAIGHT",
-    num_steps: Optional[int] = None,
+    num_steps: int | None = None,
     length: float = 4.0,
-    riser_height: Optional[float] = None,
-    radius: Optional[float] = None,
-    landing_width: Optional[float] = None,
-    landing_depth: Optional[float] = None,
-    name: Optional[str] = None,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    unit_scale: Optional[float] = None,
+    riser_height: float | None = None,
+    radius: float | None = None,
+    landing_width: float | None = None,
+    landing_depth: float | None = None,
+    name: str | None = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    unit_scale: float | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create parametric IfcStair using add_mesh_representation.
     
     Args:
@@ -466,13 +469,13 @@ def create_stairs(
 @register_command('update_stairs', description="Update existing stairs properties")
 def update_stairs(
     stairs_guid: str,
-    width: Optional[float] = None,
-    height: Optional[float] = None,
-    stairs_type: Optional[str] = None,
-    num_steps: Optional[int] = None,
-    name: Optional[str] = None,
+    width: float | None = None,
+    height: float | None = None,
+    stairs_type: str | None = None,
+    num_steps: int | None = None,
+    name: str | None = None,
     verbose: bool = False
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Update existing stairs properties and regenerate geometry.
     
     Args:
@@ -541,7 +544,7 @@ def update_stairs(
 
 
 @register_command('delete_stairs', description="Delete stairs by GUID")
-def delete_stairs(stairs_guids: List[str]) -> Dict[str, Any]:
+def delete_stairs(stairs_guids: list[str]) -> dict[str, Any]:
     """Delete stairs by their IFC GUIDs.
     
     Args:

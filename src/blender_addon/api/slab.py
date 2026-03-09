@@ -12,20 +12,24 @@ Test Examples:
     props = get_slab_properties(slab_guid="1AbCdEfGhIjKlMnOp")
 """
 
-import numpy as np
+from dataclasses import dataclass
+from typing import Any
+
 import ifcopenshell
 import ifcopenshell.api
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Union, Tuple
-import math
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, degrees_to_radians,
-    create_rotation_matrix_x, create_rotation_matrix_y, create_rotation_matrix_z,
-    create_transformation_matrix, save_and_load_ifc, 
-    create_rectangular_polyline, create_circular_polyline
-)
+import numpy as np
+
 from . import register_command
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_circular_polyline,
+    create_transformation_matrix,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
+
 
 @dataclass
 class SlabDimensions:
@@ -41,21 +45,21 @@ class SlabGeometry:
     direction_sense: str = "POSITIVE"  # POSITIVE or NEGATIVE
     offset: float = 0.0  # base offset
     x_angle: float = 0.0  # slope angle in radians
-    clippings: Optional[List] = None
-    polyline: Optional[List[Tuple[float, float]]] = None
+    clippings: list | None = None
+    polyline: list[tuple[float, float]] | None = None
 
 
 @register_command('create_slab', description="Create a new slab")
 def create_slab(
     name: str = "New Slab",
-    polyline: List[Tuple[float, float]] = None,  # 2D points defining slab boundary
+    polyline: list[tuple[float, float]] = None,  # 2D points defining slab boundary
     depth: float = 0.2,  # slab thickness (m)
-    location: List[float] = None,  # [x, y, z]
-    rotation: List[float] = None,  # [rx, ry, rz] in degrees
-    geometry_properties: Dict[str, Any] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,  # optional 4x4 matrix
-    material: Optional[Any] = None,  # optional material to assign
-    slab_type: Optional[Any] = None,  # optional IfcSlabType
+    location: list[float] = None,  # [x, y, z]
+    rotation: list[float] = None,  # [rx, ry, rz] in degrees
+    geometry_properties: dict[str, Any] = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,  # optional 4x4 matrix
+    material: Any | None = None,  # optional material to assign
+    slab_type: Any | None = None,  # optional IfcSlabType
     verbose: bool = False,
 ):
     """Create parametric IfcSlab with specified properties."""
@@ -79,7 +83,7 @@ def create_slab(
     direction_sense = geometry_properties.get("direction_sense", "POSITIVE")
     offset = geometry_properties.get("offset", 0.0)
     x_angle = geometry_properties.get("x_angle", 0.0)
-    clippings = geometry_properties.get("clippings", None)
+    clippings = geometry_properties.get("clippings")
     
     ifc_file = get_ifc_file()
     container = get_default_container()
@@ -192,7 +196,7 @@ def create_circular_slab(
     name: str = "Circular Slab",
     radius: float = 1.0,  # slab radius (m)
     thickness: float = 0.2,  # slab thickness (m)
-    location: List[float] = None,  # [x, y, z]
+    location: list[float] = None,  # [x, y, z]
     segments: int = 32,  # number of circular segments
     **kwargs
 ):
@@ -218,10 +222,10 @@ def create_circular_slab(
 
 @register_command('create_polyline_slab', description="Create a slab from polyline points")
 def create_polyline_slab(
-    points: List[Tuple[float, float]],  # 2D points defining slab boundary
+    points: list[tuple[float, float]],  # 2D points defining slab boundary
     name: str = "Polyline Slab",
     thickness: float = 0.2,  # slab thickness (m)
-    location: List[float] = None,  # [x, y, z]
+    location: list[float] = None,  # [x, y, z]
     **kwargs
 ):
     """Create slab from custom polyline points."""
@@ -372,8 +376,8 @@ def update_slab(
     slab_guid: str,  # IFC GlobalId of slab to update
     *,
     depth: float = None,  # new thickness
-    polyline: List[Tuple[float, float]] = None,  # new polyline points
-    geometry_properties: Dict[str, Any] = None,  # geometric properties to update
+    polyline: list[tuple[float, float]] = None,  # new polyline points
+    geometry_properties: dict[str, Any] = None,  # geometric properties to update
     verbose: bool = False,
 ):
     """Update an existing slab using its IFC GUID."""
@@ -417,7 +421,7 @@ def update_slab(
     new_direction_sense = geometry_properties.get("direction_sense", current_props["direction_sense"]) if geometry_properties else current_props["direction_sense"]
     new_offset = geometry_properties.get("offset", current_props["offset"]) if geometry_properties else current_props["offset"]
     new_x_angle = geometry_properties.get("x_angle", current_props["x_angle"]) if geometry_properties else current_props["x_angle"]
-    new_clippings = geometry_properties.get("clippings", None) if geometry_properties else None
+    new_clippings = geometry_properties.get("clippings") if geometry_properties else None
     
     new_rep = ifcopenshell.api.run(
         "geometry.add_slab_representation",
@@ -465,7 +469,7 @@ def update_slab(
 
 
 @register_command('get_slab_properties', description="Get properties of an existing slab")
-def get_slab_properties(slab_guid: str) -> Dict[str, Any]:
+def get_slab_properties(slab_guid: str) -> dict[str, Any]:
     """Get properties of an existing slab by IFC GUID."""
     ifc_file = get_ifc_file()
     slab = _get_slab_by_guid(slab_guid, ifc_file)

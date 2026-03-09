@@ -271,10 +271,10 @@ class TestSemanticChecks:
     def test_individual_check_functions_importable(self) -> None:
         """Individual check functions must be importable."""
         from validate.semantic_checks import (  # type: ignore[import]  # noqa: F401
+            check_disconnected_storeys,
             check_floating_openings,
             check_spatial_containment,
             check_zero_thickness_slabs,
-            check_disconnected_storeys,
         )
 
     def test_cli_exits_zero_for_valid_ifc(self) -> None:

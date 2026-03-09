@@ -19,8 +19,10 @@ Features:
 """
 
 import bpy
-from bpy.types import Panel, Operator
+from bpy.types import Operator, Panel
+
 from . import core
+
 
 class BLENDERMCP_PT_Panel(Panel):
     """The main UI panel for the BlenderMCP addon in the 3D View sidebar."""

@@ -2,10 +2,13 @@
 MCP tools for Blender analysis and viewport manipulation
 '''
 
-from mcp.server.fastmcp import Context, Image
 import base64
-from ..server import logger, get_blender_connection
+
+from mcp.server.fastmcp import Context, Image
+
 from ..mcp_instance import mcp
+from ..server import get_blender_connection, logger
+
 
 @mcp.tool()
 def capture_blender_window_screenshot(
@@ -68,7 +71,7 @@ def capture_blender_window_screenshot(
         
     except Exception as e:
         logger.error(f"Error capturing Blender screenshot: {str(e)}")
-        raise Exception(f"Screenshot capture failed: {str(e)}")
+        raise Exception(f"Screenshot capture failed: {str(e)}") from e
 
 @mcp.tool()
 def capture_blender_3dviewport_screenshot(
@@ -156,4 +159,4 @@ def capture_blender_3dviewport_screenshot(
         
     except Exception as e:
         logger.error(f"Error capturing 3D viewport screenshot: {str(e)}")
-        raise Exception(f"3D viewport screenshot capture failed: {str(e)}")
+        raise Exception(f"3D viewport screenshot capture failed: {str(e)}") from e

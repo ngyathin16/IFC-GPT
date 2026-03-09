@@ -15,19 +15,26 @@ Test Examples:
     props = get_wall_properties(wall_guid="1AbCdEfGhIjKlMnOp")
 """
 
-import numpy as np
-import ifcopenshell
-import ifcopenshell.api
 import math
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Union, Tuple
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    get_or_create_axis_context, calculate_unit_scale, degrees_to_radians,
-    create_rotation_matrix_x, create_rotation_matrix_y, create_rotation_matrix_z,
-    create_transformation_matrix, save_and_load_ifc, calculate_two_point_parameters
-)
+from typing import Any
+
+import ifcopenshell
+import ifcopenshell.api
+import numpy as np
+
 from . import register_command
+from .ifc_utils import (
+    calculate_two_point_parameters,
+    calculate_unit_scale,
+    create_transformation_matrix,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_axis_context,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
+
 
 @dataclass
 class WallDimensions:
@@ -43,22 +50,22 @@ class WallGeometry:
     direction_sense: str = "POSITIVE"  # POSITIVE or NEGATIVE
     offset: float = 0.0  # base offset
     x_angle: float = 0.0  # slope angle in radians
-    clippings: Optional[List] = None
-    booleans: Optional[List] = None
+    clippings: list | None = None
+    booleans: list | None = None
 
 
 @register_command('create_wall', description="Create a new wall")
 def create_wall(
     name: str = "New Wall",
-    dimensions: Optional[Dict[str, float]] = None,
-    location: Optional[List[float]] = None,
-    rotation: Optional[List[float]] = None,
-    geometry_properties: Optional[Dict[str, Any]] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    material: Optional[Any] = None,
-    wall_type: Optional[Any] = None,
+    dimensions: dict[str, float] | None = None,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    geometry_properties: dict[str, Any] | None = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    material: Any | None = None,
+    wall_type: Any | None = None,
     verbose: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create parametric IfcWall with specified properties."""
     
     if dimensions is None:
@@ -87,8 +94,8 @@ def create_wall(
     direction_sense = geometry_properties.get("direction_sense", "POSITIVE")
     offset = geometry_properties.get("offset", 0.0)
     x_angle = geometry_properties.get("x_angle", 0.0)
-    clippings = geometry_properties.get("clippings", None)
-    booleans = geometry_properties.get("booleans", None)
+    clippings = geometry_properties.get("clippings")
+    booleans = geometry_properties.get("booleans")
     
     ifc_file = get_ifc_file()
     container = get_default_container()
@@ -220,8 +227,8 @@ def create_wall(
 
 @register_command('create_two_point_wall', description="Create a wall between two points")
 def create_two_point_wall(
-    start_point: Tuple[float, float, float],  # (x, y, z) start
-    end_point: Tuple[float, float, float],  # (x, y, z) end
+    start_point: tuple[float, float, float],  # (x, y, z) start
+    end_point: tuple[float, float, float],  # (x, y, z) end
     name: str = "Two Point Wall",
     thickness: float = 0.2,  # wall thickness (m)
     height: float = 3.0,  # wall height (m)
@@ -259,13 +266,13 @@ def create_two_point_wall(
 
 @register_command('create_polyline_walls', description="Create connected walls along a polyline path")
 def create_polyline_walls(
-    points: List[Tuple[float, float, float]],  # list of (x, y, z) coordinates
+    points: list[tuple[float, float, float]],  # list of (x, y, z) coordinates
     name_prefix: str = "Wall",
     thickness: float = 0.2,  # wall thickness (m)
     height: float = 3.0,  # wall height (m)
     closed: bool = False,  # close the loop
     **kwargs
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create connected walls along a polyline path."""
     if len(points) < 2:
         raise ValueError("Need at least 2 points for wall creation")
@@ -355,8 +362,8 @@ def _extract_wall_properties(wall, ifc_file):
 def update_wall(
     wall_guid: str,  # IFC GlobalId of wall to update
     *,
-    dimensions: Dict[str, float] = None,  # length, height, thickness to update
-    geometry_properties: Dict[str, Any] = None,  # geometric properties to update
+    dimensions: dict[str, float] = None,  # length, height, thickness to update
+    geometry_properties: dict[str, Any] = None,  # geometric properties to update
     verbose: bool = False,
 ):
     """Update an existing wall using its IFC GUID."""
@@ -379,8 +386,8 @@ def update_wall(
         new_direction_sense = geometry_properties.get("direction_sense", current_props["direction_sense"])
         new_offset = geometry_properties.get("offset", current_props["offset"])
         new_x_angle = geometry_properties.get("x_angle", current_props["x_angle"])
-        new_clippings = geometry_properties.get("clippings", None)
-        new_booleans = geometry_properties.get("booleans", None)
+        new_clippings = geometry_properties.get("clippings")
+        new_booleans = geometry_properties.get("booleans")
     else:
         new_direction_sense = current_props["direction_sense"]
         new_offset = current_props["offset"]
@@ -438,7 +445,7 @@ def update_wall(
 
 
 @register_command('get_wall_properties', description="Get properties of an existing wall")
-def get_wall_properties(wall_guid: str) -> Dict[str, Any]:
+def get_wall_properties(wall_guid: str) -> dict[str, Any]:
     """Get properties of an existing wall by IFC GUID."""
     ifc_file = get_ifc_file()
     wall = _get_wall_by_guid(wall_guid, ifc_file)

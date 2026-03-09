@@ -6,17 +6,22 @@ Examples:
     create_simple_window(name="Simple", width=1.2, height=1.5, x=2.0, z=1.0)
 """
 
-import numpy as np
+from dataclasses import dataclass
+from typing import Any, Optional
+
 import ifcopenshell
 import ifcopenshell.api
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Union
-from .ifc_utils import (
-    get_ifc_file, get_default_container, get_or_create_body_context, 
-    calculate_unit_scale, create_transformation_matrix, save_and_load_ifc, create_wall_aligned_matrix
-)
-from . import register_command
+import numpy as np
 
+from . import register_command
+from .ifc_utils import (
+    calculate_unit_scale,
+    create_transformation_matrix,
+    get_default_container,
+    get_ifc_file,
+    get_or_create_body_context,
+    save_and_load_ifc,
+)
 
 WINDOW_PARTITION_TYPES = {
     "SINGLE_PANEL": "SINGLE_PANEL",
@@ -35,25 +40,25 @@ WINDOW_PARTITION_TYPES = {
 @dataclass
 class WindowLiningProperties:
     """Window frame properties (meters)."""
-    LiningDepth: Optional[float] = 0.05
-    LiningThickness: Optional[float] = 0.05
-    LiningOffset: Optional[float] = 0.05
-    LiningToPanelOffsetX: Optional[float] = 0.025
-    LiningToPanelOffsetY: Optional[float] = 0.025
-    MullionThickness: Optional[float] = 0.05
-    FirstMullionOffset: Optional[float] = 0.3
-    SecondMullionOffset: Optional[float] = 0.45
-    TransomThickness: Optional[float] = 0.05
-    FirstTransomOffset: Optional[float] = 0.3
-    SecondTransomOffset: Optional[float] = 0.6
+    LiningDepth: float | None = 0.05
+    LiningThickness: float | None = 0.05
+    LiningOffset: float | None = 0.05
+    LiningToPanelOffsetX: float | None = 0.025
+    LiningToPanelOffsetY: float | None = 0.025
+    MullionThickness: float | None = 0.05
+    FirstMullionOffset: float | None = 0.3
+    SecondMullionOffset: float | None = 0.45
+    TransomThickness: float | None = 0.05
+    FirstTransomOffset: float | None = 0.3
+    SecondTransomOffset: float | None = 0.6
     ShapeAspectStyle: Optional[None] = None
 
 
 @dataclass
 class WindowPanelProperties:
     """Glass panel properties."""
-    FrameThickness: Optional[float] = 0.035
-    FrameDepth: Optional[float] = 0.035
+    FrameThickness: float | None = 0.035
+    FrameDepth: float | None = 0.035
     PanelOperation: Optional[None] = None
     PanelPosition: Optional[None] = None
     ShapeAspectStyle: Optional[None] = None
@@ -74,7 +79,7 @@ def create_default_panel_properties(
     partition_type: str, 
     frame_thickness: float = 0.035,
     frame_depth: float = 0.035
-) -> List[WindowPanelProperties]:
+) -> list[WindowPanelProperties]:
     """Create default panel properties."""
     panel_count = get_panel_count_for_partition_type(partition_type)
     return [WindowPanelProperties(
@@ -84,7 +89,7 @@ def create_default_panel_properties(
 
 
 @register_command('get_window_partition_types', description="Get all supported window partition types")
-def get_window_partition_types() -> Dict[str, Any]:
+def get_window_partition_types() -> dict[str, Any]:
     """Get all window partition types with descriptions."""
     return {
         "success": True,
@@ -96,17 +101,17 @@ def get_window_partition_types() -> Dict[str, Any]:
 @register_command('create_window', description="Create a new window")
 def create_window(
     name: str = "New Window",
-    dimensions: Dict[str, float] = None,
+    dimensions: dict[str, float] = None,
     partition_type: str = "SINGLE_PANEL",
-    location: List[float] = None,
-    rotation: List[float] = None,
-    frame_properties: Dict[str, float] = None,
-    panel_properties: Dict[str, float] = None,
-    custom_panels: Optional[List[Dict[str, Any]]] = None,
-    transformation_matrix: Optional[Union[np.ndarray, List[List[float]]]] = None,
-    unit_scale: Optional[float] = None,
-    part_of_product: Optional[Any] = None,
-    wall_guid: Optional[str] = None,
+    location: list[float] = None,
+    rotation: list[float] = None,
+    frame_properties: dict[str, float] = None,
+    panel_properties: dict[str, float] = None,
+    custom_panels: list[dict[str, Any]] | None = None,
+    transformation_matrix: np.ndarray | list[list[float]] | None = None,
+    unit_scale: float | None = None,
+    part_of_product: Any | None = None,
+    wall_guid: str | None = None,
     create_opening: bool = False,
     verbose: bool = False,
 ):
@@ -570,7 +575,7 @@ def update_window(
 
 
 @register_command('get_window_properties', description="Get properties of an existing window")
-def get_window_properties(window_guid: str) -> Dict[str, Any]:
+def get_window_properties(window_guid: str) -> dict[str, Any]:
     """Get properties of an existing window by IFC GUID."""
     ifc_file = get_ifc_file()
     window = _get_window_by_guid(window_guid, ifc_file)

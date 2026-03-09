@@ -3,13 +3,13 @@ System/meta API for IFC Bonsai MCP.
 Provides command discovery and environment helper introspection for LLMs.
 """
 
-from typing import Dict, Any, List
+from typing import Any
 
-from . import register_command, get_all_commands
+from . import get_all_commands, register_command
 
 
 @register_command('list_commands', description="List available addon commands with descriptions")
-def list_commands() -> Dict[str, Any]:
+def list_commands() -> dict[str, Any]:
     """Return all registered command names and descriptions.
 
     Returns:
