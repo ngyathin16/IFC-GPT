@@ -121,7 +121,7 @@ def install_package(extras=None, include_all_extras: bool = False):
 
 def create_addon_zip(project_path: Path):
     """Create blender_addon.zip from the blender_addon folder"""
-    addon_source_dir = project_path / "blender_addon"
+    addon_source_dir = project_path / "src" / "blender_addon"
     zip_file_path = project_path / "blender_addon.zip"
     
     if not addon_source_dir.is_dir():
