@@ -1,0 +1,201 @@
+name: IFC Validation Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  BLENDER_VERSION: "4.4.0"
+
+jobs:
+  # ===================================================================
+  # Job 1: Lint + Type Check (fast, no Blender needed)
+  # ===================================================================
+  lint:
+    name: Lint & Type-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Ruff lint
+        run: uv run ruff check src/ agent/ validate/ components/
+
+      - name: Ruff format check
+        run: uv run ruff format --check src/ agent/ validate/ components/
+
+      - name: MyPy type check
+        run: uv run mypy src/ agent/ validate/ --ignore-missing-imports
+
+  # ===================================================================
+  # Job 2: Unit Tests (IfcOpenShell only, no Blender)
+  # ===================================================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Run pytest
+        run: uv run pytest tests/ -v --tb=short
+
+      - name: Generate golden IFC fixtures
+        run: |
+          uv run python tests/golden_test_simple_room.py
+          uv run python tests/golden_test_two_storey.py
+
+      - name: Schema validation — golden fixtures
+        run: |
+          uv run python validate/schema_validate.py tests/output/golden_simple_room.ifc
+          uv run python validate/schema_validate.py tests/output/golden_two_storey.ifc
+
+      - name: IDS validation — golden fixtures
+        run: |
+          uv run python validate/ids_validate.py tests/output/golden_simple_room.ifc ids/v0.ids
+          uv run python validate/ids_validate.py tests/output/golden_two_storey.ifc ids/v0.ids
+
+      - name: Semantic checks — golden fixtures
+        run: |
+          uv run python validate/semantic_checks.py tests/output/golden_simple_room.ifc
+          uv run python validate/semantic_checks.py tests/output/golden_two_storey.ifc
+
+      - name: Check validation reports
+        run: |
+          uv run python .github/workflows/scripts/check_validation_results.py \
+            tests/output/golden_simple_room_validation.json \
+            tests/output/golden_two_storey_validation.json
+
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-reports
+          path: |
+            tests/output/*.ifc
+            tests/output/*.json
+            tests/output/*.html
+          retention-days: 30
+
+  # ===================================================================
+  # Job 3: Blender Integration Tests (requires Blender)
+  # ===================================================================
+  blender-integration:
+    name: Blender Integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [lint, unit-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libxi6 libxxf86vm1 libxfixes3 \
+            libxrender1 libgl1-mesa-glx libegl1-mesa
+
+      - name: Cache Blender
+        id: cache-blender
+        uses: actions/cache@v4
+        with:
+          path: /opt/blender
+          key: blender-${{ env.BLENDER_VERSION }}-linux
+
+      - name: Download Blender (if not cached)
+        if: steps.cache-blender.outputs.cache-hit != 'true'
+        run: |
+          BLENDER_URL="https://mirror.clarkson.edu/blender/release/Blender4.4/blender-${{ env.BLENDER_VERSION }}-linux-x64.tar.xz"
+          mkdir -p /opt/blender
+          curl -L "$BLENDER_URL" | tar -xJ -C /opt/blender --strip-components=1
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install project dependencies
+        run: uv sync --all-extras
+
+      - name: Install Blender Python packages
+        run: |
+          BLENDER_PYTHON=$(/opt/blender/blender --background --python-expr \
+            "import sys; print(sys.executable)" 2>/dev/null | tail -1)
+          ${BLENDER_PYTHON} -m pip install ifcopenshell trimesh numpy
+
+      - name: Run Blender headless test
+        run: |
+          xvfb-run -a /opt/blender/blender --background \
+            --python tests/golden_test_simple_room.py
+
+      - name: Validate Blender output
+        run: |
+          uv run python validate/schema_validate.py tests/output/golden_simple_room.ifc
+
+  # ===================================================================
+  # Job 4: IDS Regression (runs on any IDS file change)
+  # ===================================================================
+  ids-regression:
+    name: IDS Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.changed_files, 'ids/'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Validate IDS XML schema
+        run: |
+          uv run python -c "
+          from ifctester import ids
+          for ids_file in ['ids/v0.ids']:
+              try:
+                  loaded = ids.open(ids_file)
+                  spec_count = len(loaded.specifications)
+                  print(f'{ids_file}: Valid ({spec_count} specifications)')
+              except Exception as e:
+                  print(f'{ids_file}: INVALID — {e}')
+                  exit(1)
+          "
