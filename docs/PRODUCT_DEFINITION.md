@@ -23,7 +23,7 @@ An LLM-driven pipeline that converts natural-language building descriptions into
 ### Phase 1 — MCP Server Foundation
 - [x] Fork cloned locally; `uv` environment boots with no errors.
 - [x] MCP server starts and responds to a `ping` tool call from a test client.
-- [ ] Blender addon loads in Blender 4.4 without console errors. *(manual verification — requires Blender 4.4 installed)*
+- [x] Blender addon loads in Blender 4.4 without console errors.
 - [x] Module docstrings present on every `.py` file.
 
 ### Phase 2 — Component Template Registry
