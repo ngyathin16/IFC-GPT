@@ -25,11 +25,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 BLACKLISTED_MODULES = {
-    'os', 'sys', 'subprocess', 'socket', 'shlex',
+    'subprocess', 'socket', 'shlex',
     'importlib', 'pickle', 'shelve', 'dbm', 'sqlite3',
     'http', 'urllib', 'ftplib', 'poplib', 'imaplib', 'smtplib',
     'telnetlib', 'xmlrpc', 'ssl', 'socketserver', 'http.server', 'xmlrpc.server',
     'threading', 'multiprocessing', 'concurrent', 'asyncio',
+}
+
+# Modules blocked only in the sandboxed execute_ifc_code path
+IFC_BLACKLISTED_MODULES = BLACKLISTED_MODULES | {
+    'os', 'sys',
     'bpy', 'bmesh', 'gpu', 'aud', 'bgl', 'blf',
     'bpy_extras', 'keyingsets_utils'
 }
@@ -107,15 +112,16 @@ def create_safe_import(blacklisted_modules):
 
 
 class _ThreatVisitor(ast.NodeVisitor):
-    def __init__(self):
+    def __init__(self, blacklisted_modules: set = None):
         self.issues: List[str] = []
+        self._blacklisted = blacklisted_modules if blacklisted_modules is not None else BLACKLISTED_MODULES
 
     def visit_Import(self, node):
         for alias in node.names:
             module_name = alias.name
             module_root = module_name.split('.')[0]
 
-            if module_root in BLACKLISTED_MODULES:
+            if module_root in self._blacklisted:
                 self.issues.append(f"Import of blacklisted module '{module_name}' not allowed")
                 continue
 
@@ -129,7 +135,7 @@ class _ThreatVisitor(ast.NodeVisitor):
             module_name = node.module
             module_root = module_name.split('.')[0]
 
-            if module_root in BLACKLISTED_MODULES:
+            if module_root in self._blacklisted:
                 self.issues.append(f"Import from blacklisted module '{module_name}' not allowed")
                 return
 
@@ -147,8 +153,8 @@ class _ThreatVisitor(ast.NodeVisitor):
             full_name = self._get_attribute_chain(node.func)
             if full_name:
                 func_root = full_name.split('.')[0]
-                if func_root in {'bpy', 'bmesh', 'gpu', 'aud', 'mathutils'}:
-                    self.issues.append(f"Call to Blender API function '{full_name}()' not allowed")
+                if func_root in self._blacklisted:
+                    self.issues.append(f"Call to blacklisted module function '{full_name}()' not allowed")
         self.generic_visit(node)
 
     def visit_Attribute(self, node):
@@ -173,11 +179,11 @@ class _ThreatVisitor(ast.NodeVisitor):
         return None
 
 
-def detect_threats(code: str) -> List[str]:
+def detect_threats(code: str, blacklisted_modules: set = None) -> List[str]:
     """Parse code and return security threat descriptions."""
     try:
         tree = ast.parse(code)
-        visitor = _ThreatVisitor()
+        visitor = _ThreatVisitor(blacklisted_modules=blacklisted_modules)
         visitor.visit(tree)
         return visitor.issues
     except SyntaxError as e:
@@ -256,7 +262,7 @@ def execute_ifc_code(code: str) -> Dict[str, Any]:
         if not code.strip():
             return {"status": "error", "error": "Empty code provided"}
 
-        threats = detect_threats(code)
+        threats = detect_threats(code, blacklisted_modules=IFC_BLACKLISTED_MODULES)
         if threats:
             logger.warning(f"Security violations detected: {threats}")
             return {
@@ -265,7 +271,7 @@ def execute_ifc_code(code: str) -> Dict[str, Any]:
                 "security_issues": threats
             }
 
-        safe_import = create_safe_import(BLACKLISTED_MODULES)
+        safe_import = create_safe_import(IFC_BLACKLISTED_MODULES)
 
         exec_globals = {
             '__builtins__': {

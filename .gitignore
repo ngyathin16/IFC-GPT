@@ -11,6 +11,9 @@ build/
 # uv
 .uv/
 
+# Cache (HuggingFace models, ChromaDB vector store)
+.cache/
+
 # Reports (build artifacts — golden baselines are tracked explicitly)
 reports/*.ifc
 reports/*.json
