@@ -1,3 +1,9 @@
+"""BlenderMCP server: lifecycle management and Blender socket connection.
+
+Manages the persistent TCP connection to the Blender addon socket server,
+provides the `get_blender_connection` helper used by all MCP tool modules,
+and wires up the FastMCP server lifespan.
+"""
 from mcp.server.fastmcp import FastMCP
 import socket
 import json
@@ -162,7 +168,7 @@ def get_blender_connection():
     return _blender_connection
 
 #import all mcp tools, resources, and prompts
-from .mcp_functions import api_tools, analysis_tools, prompts, rag_tools
+from .mcp_functions import api_tools, analysis_tools, prompts, rag_tools, ping
 
 def main():
     """Run the MCP server"""

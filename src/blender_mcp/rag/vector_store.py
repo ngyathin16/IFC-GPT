@@ -1,4 +1,4 @@
-﻿"""
+"""
 Vector store for IFC knowledge base using ChromaDB and LangChain.
 
 Offline-aware embedding loading:

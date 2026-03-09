@@ -1,4 +1,8 @@
-# For MCP inspector, Run: npx @modelcontextprotocol/inspector uv --directory . run main.py
+"""Entry point for the LLM-IFC-Generation MCP server.
+
+Run with:  uv run main.py
+Inspect with: npx @modelcontextprotocol/inspector uv --directory . run main.py
+"""
 from blender_mcp.server import main as server_main
 
 def main():

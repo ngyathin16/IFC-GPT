@@ -1,9 +1,9 @@
 """Blender MCP Addon - Model Context Protocol Integration for Blender.
 
-This addon establishes a bidirectional communication channel between Blender and Claude AI
-using the Model Context Protocol (MCP). It creates a socket server within Blender that
-listens for and executes commands from Claude, enabling AI-assisted 3D modeling and
-scene manipulation.
+This addon establishes a bidirectional communication channel between Blender and an MCP
+client (e.g. Cursor) using the Model Context Protocol (MCP). It creates a socket server
+within Blender that listens for and executes commands from the MCP client, enabling
+AI-assisted 3D modelling and scene manipulation.
 
 Key Features:
     - Socket server for real-time command reception
@@ -26,7 +26,7 @@ bl_info = {
     "version": (1, 0),
     "blender": (3, 0, 0),
     "location": "View3D > Sidebar > BlenderMCP",
-    "description": "Connect Blender to Claude via MCP",
+    "description": "Connect Blender to an MCP client (e.g. Cursor) via MCP",
     "category": "Interface",
 }
 

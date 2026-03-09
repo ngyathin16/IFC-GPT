@@ -3,7 +3,7 @@
 Optional Installation script for IFC Bonsai MCP.
 
 Provides automated setup for the IFC Bonsai MCP package, including
-Claude Desktop configuration, Python package installation, and Blender
+Cursor MCP configuration, Python package installation, and Blender
 addon packaging. Each step can be run individually or all together.
 """
 
@@ -24,14 +24,14 @@ ALL_EXTRAS = [
     "standalone",
 ]
 
-def find_claude_config():
-    """Find the Claude Desktop config file or return the default location if not found"""
+def find_cursor_config():
+    """Find the Cursor MCP config file or return the default location if not found."""
     home = Path.home()
-    
+
     locations = {
-        "windows": home / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json",
-        "macos": home / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json",
-        "linux": home / ".config" / "Claude" / "claude_desktop_config.json",
+        "windows": home / "AppData" / "Roaming" / "Cursor" / "User" / "globalStorage" / "cursor-mcp.json",
+        "macos": home / "Library" / "Application Support" / "Cursor" / "User" / "globalStorage" / "cursor-mcp.json",
+        "linux": home / ".config" / "Cursor" / "User" / "globalStorage" / "cursor-mcp.json",
     }
     
     if sys.platform.startswith("win"):
@@ -43,13 +43,13 @@ def find_claude_config():
     
     if locations[platform].exists():
         return locations[platform]
-    
+
     print(f"Config file not found. Will create at default location: {locations[platform]}")
     locations[platform].parent.mkdir(parents=True, exist_ok=True)
     return locations[platform]
 
-def update_claude_config(config_path, project_path):
-    """Update or create the Claude Desktop config file with MCP server settings"""
+def update_cursor_config(config_path: Path, project_path: Path) -> bool:
+    """Update or create the Cursor MCP config file with MCP server settings."""
     try:
         if config_path.exists():
             with open(config_path, "r") as f:
@@ -121,7 +121,7 @@ def install_package(extras=None, include_all_extras: bool = False):
 
 def create_addon_zip(project_path: Path):
     """Create blender_addon.zip from the blender_addon folder"""
-    addon_source_dir = project_path / "blender_addon"
+    addon_source_dir = project_path / "src" / "blender_addon"
     zip_file_path = project_path / "blender_addon.zip"
     
     if not addon_source_dir.is_dir():
@@ -151,8 +151,8 @@ def main():
     """Main installation function with command-line arguments"""
     parser = argparse.ArgumentParser(description='Install IFC Bonsai MCP')
     
-    parser.add_argument('--configure-claude', action='store_true', 
-                        help='Configure Claude Desktop to use Blender MCP')
+    parser.add_argument('--configure-cursor', action='store_true',
+                        help='Configure Cursor to use Blender MCP via cursor-mcp.json')
     parser.add_argument('--install-package', action='store_true', 
                         help='Install the Python package in development mode (uses uv when available)')
     parser.add_argument('--create-addon-zip', action='store_true', 
@@ -166,7 +166,7 @@ def main():
     
     args = parser.parse_args()
     
-    if not (args.configure_claude or args.install_package or 
+    if not (args.configure_cursor or args.install_package or
             args.create_addon_zip or args.all):
         parser.print_help()
         return 0
@@ -193,25 +193,25 @@ def main():
         else:
             print("Package installed successfully.")
     
-    if args.configure_claude or args.all:
-        print("\nConfiguring Claude Desktop...")
-        config_path = find_claude_config()
+    if args.configure_cursor or args.all:
+        print("\nConfiguring Cursor MCP...")
+        config_path = find_cursor_config()
         if config_path:
             print(f"Using config file: {config_path}")
-            if update_claude_config(config_path, project_path):
-                print("Claude Desktop configuration updated successfully.")
+            if update_cursor_config(config_path, project_path):
+                print("Cursor MCP configuration updated successfully.")
             else:
-                print("Failed to update Claude Desktop configuration.")
+                print("Failed to update Cursor MCP configuration.")
                 success = False
     
-    if args.all or args.configure_claude or args.install_package or args.create_addon_zip:
+    if args.all or args.configure_cursor or args.install_package or args.create_addon_zip:
         print("\nNext steps:")
         print("1. Open Blender.")
         print("2. Install the addon: Edit > Preferences > Add-ons > Install... and select blender_addon.zip")
         print("3. Enable the 'Blender MCP' addon.")
         print("4. In the 3D View sidebar (N key), find the 'BlenderMCP' tab.")
         print("5. Click 'Connect to MCP server'.")
-        print("6. Open Claude Desktop or other AI assistants to use Blender MCP tools.")
+        print("6. Open Cursor and use the MCP tools from the AI panel (the server is auto-registered in cursor-mcp.json).")
         if args.install_package or args.all:
             print("7. Activate the uv-created virtual environment: on Windows `.venv\\Scripts\\activate`, on Unix `source .venv/bin/activate`.")
             print("8. Use `uv run <command>` to execute project scripts inside the environment when needed.")

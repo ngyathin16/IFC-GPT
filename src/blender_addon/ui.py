@@ -48,8 +48,8 @@ class BLENDERMCP_PT_Panel(Panel):
 class BLENDERMCP_OT_StartServer(Operator):
     """Operator to start the BlenderMCP server."""
     bl_idname = "blendermcp.start_server"
-    bl_label = "Connect to Claude"
-    bl_description = "Start the BlenderMCP server to connect with Claude"
+    bl_label = "Connect to MCP Client"
+    bl_description = "Start the BlenderMCP server to connect with an MCP client (e.g. Cursor)"
     
     def execute(self, context):
         scene = context.scene
@@ -63,8 +63,8 @@ class BLENDERMCP_OT_StartServer(Operator):
 class BLENDERMCP_OT_StopServer(Operator):
     """Operator to stop the BlenderMCP server."""
     bl_idname = "blendermcp.stop_server"
-    bl_label = "Stop the connection to Claude"
-    bl_description = "Stop the connection to Claude"
+    bl_label = "Stop MCP Connection"
+    bl_description = "Stop the MCP server connection"
     
     def execute(self, context):
         scene = context.scene
