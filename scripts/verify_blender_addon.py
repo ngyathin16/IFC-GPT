@@ -5,7 +5,7 @@ to verify the BlenderMCP addon is installed and registered correctly.
 It prints PASS or FAIL for each check and only outputs action items if needed.
 
 Usage (in Blender's Python console):
-    exec(open(r"C:\Users\Harold NG\Documents\IFC-GPT\scripts\verify_blender_addon.py").read())
+    exec(open(r"C:/Users/Harold NG/Documents/IFC-GPT/scripts/verify_blender_addon.py").read())
 """
 
 import bpy
