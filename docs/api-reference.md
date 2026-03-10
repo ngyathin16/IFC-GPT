@@ -7,9 +7,9 @@ title: MCP Tools API Reference
 
 > **Note: This file is auto-generated. Do not edit manually.**
 
-*Last updated: 2025-10-24 11:15:00*
+*Last updated: 2026-03-10 13:43:00*
 
-Total tools found: 52 across 3 modules.
+Total tools found: 62 across 3 modules.
 
 ## Table of Contents
 
@@ -59,6 +59,16 @@ Total tools found: 52 across 3 modules.
   - [create_mesh_ifc](#create-mesh-ifc)
   - [list_ifc_entities](#list-ifc-entities)
   - [get_trimesh_examples](#get-trimesh-examples)
+  - [get_opening_types](#get-opening-types)
+  - [create_opening](#create-opening)
+  - [fill_opening](#fill-opening)
+  - [remove_opening](#remove-opening)
+  - [remove_filling](#remove-filling)
+  - [get_element_openings](#get-element-openings)
+  - [get_opening_info](#get-opening-info)
+  - [copy_ifc_element](#copy-ifc-element)
+  - [reassign_ifc_class](#reassign-ifc-class)
+  - [delete_ifc_elements](#delete-ifc-elements)
 - **[Rag Tools](#rag-tools)**
   - [ensure_ifc_knowledge_ready](#ensure-ifc-knowledge-ready)
   - [search_ifc_knowledge](#search-ifc-knowledge)

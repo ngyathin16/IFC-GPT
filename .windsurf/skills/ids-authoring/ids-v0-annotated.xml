@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ids-v0-annotated.xml
+  Annotated reference copy of ids/v0.ids
+  This file documents the intent of each specification.
+  The canonical file for validation is ids/v0.ids (no comments, production use).
+-->
+<ids xmlns="http://standards.buildingsmart.org/IDS"
+     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://standards.buildingsmart.org/IDS
+         http://standards.buildingsmart.org/IDS/1.0/ids.xsd">
+
+  <info>
+    <title>IFC-GPT v0 Validation Requirements</title>
+    <version>0.1</version>
+    <description>
+      Baseline IDS for LLM-generated IFC4 buildings.
+      13 specifications covering spatial hierarchy, common property sets,
+      and spatial containment of all architectural elements.
+    </description>
+    <author>IFC-GPT project</author>
+    <date>2025-01-01</date>
+    <purpose>Ensure generated IFC files meet minimum BIM authoring standards</purpose>
+  </info>
+
+  <specifications>
+
+    <!-- ============================================================
+         SPECIFICATIONS 1-4: SPATIAL HIERARCHY EXISTENCE
+         These ensure the IFC4 required spatial tree exists.
+         IfcProject > IfcSite > IfcBuilding > IfcBuildingStorey
+         ============================================================ -->
+
+    <!-- SPEC 1: IfcProject must exist -->
+    <specification name="IfcProject must exist" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <!-- applicability: select all IfcProject entities -->
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCPROJECT</simpleValue></name>
+        </entity>
+      </applicability>
+      <!-- no requirements: existence check only -->
+    </specification>
+
+    <!-- SPEC 2: IfcSite must exist -->
+    <specification name="IfcSite must exist" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCSITE</simpleValue></name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <!-- SPEC 3: IfcBuilding must exist -->
+    <specification name="IfcBuilding must exist" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCBUILDING</simpleValue></name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <!-- SPEC 4: IfcBuildingStorey must exist -->
+    <specification name="IfcBuildingStorey must exist" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+        </entity>
+      </applicability>
+    </specification>
+
+    <!-- ============================================================
+         SPECIFICATIONS 5-6: WALL REQUIREMENTS
+         ============================================================ -->
+
+    <!-- SPEC 5: Walls must have Pset_WallCommon.IsExternal -->
+    <specification name="Walls require IsExternal property" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCWALL</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <!-- IsExternal must exist as IFCBOOLEAN — value not constrained (true or false) -->
+        <property datatype="IFCBOOLEAN">
+          <propertySet><simpleValue>Pset_WallCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <!-- SPEC 6: Walls must be spatially contained in an IfcBuildingStorey -->
+    <specification name="Walls must be in IfcBuildingStorey" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCWALL</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE">
+          <entity>
+            <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ============================================================
+         SPECIFICATIONS 7-8: SLAB REQUIREMENTS
+         ============================================================ -->
+
+    <!-- SPEC 7: Slabs must have Pset_SlabCommon.IsExternal -->
+    <specification name="Slabs require IsExternal property" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCSLAB</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property datatype="IFCBOOLEAN">
+          <propertySet><simpleValue>Pset_SlabCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <!-- SPEC 8: Slabs must be spatially contained in an IfcBuildingStorey -->
+    <specification name="Slabs must be in IfcBuildingStorey" ifcVersion="IFC4"
+                   minOccurs="1" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCSLAB</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE">
+          <entity>
+            <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ============================================================
+         SPECIFICATIONS 9-10: DOOR REQUIREMENTS
+         ============================================================ -->
+
+    <!-- SPEC 9: Doors must have Pset_DoorCommon.IsExternal -->
+    <specification name="Doors require IsExternal property" ifcVersion="IFC4"
+                   minOccurs="0" maxOccurs="unbounded">
+      <!-- minOccurs=0: only validates if doors exist (building may have no doors) -->
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCDOOR</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property datatype="IFCBOOLEAN">
+          <propertySet><simpleValue>Pset_DoorCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <!-- SPEC 10: Doors must be spatially contained in an IfcBuildingStorey -->
+    <specification name="Doors must be in IfcBuildingStorey" ifcVersion="IFC4"
+                   minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCDOOR</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE">
+          <entity>
+            <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ============================================================
+         SPECIFICATIONS 11-12: WINDOW REQUIREMENTS
+         ============================================================ -->
+
+    <!-- SPEC 11: Windows must have Pset_WindowCommon.IsExternal -->
+    <specification name="Windows require IsExternal property" ifcVersion="IFC4"
+                   minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCWINDOW</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <property datatype="IFCBOOLEAN">
+          <propertySet><simpleValue>Pset_WindowCommon</simpleValue></propertySet>
+          <baseName><simpleValue>IsExternal</simpleValue></baseName>
+        </property>
+      </requirements>
+    </specification>
+
+    <!-- SPEC 12: Windows must be spatially contained in an IfcBuildingStorey -->
+    <specification name="Windows must be in IfcBuildingStorey" ifcVersion="IFC4"
+                   minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCWINDOW</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE">
+          <entity>
+            <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <!-- ============================================================
+         SPECIFICATION 13: ROOF REQUIREMENTS
+         ============================================================ -->
+
+    <!-- SPEC 13: Roofs must be spatially contained in an IfcBuildingStorey -->
+    <specification name="Roofs must be in IfcBuildingStorey" ifcVersion="IFC4"
+                   minOccurs="0" maxOccurs="unbounded">
+      <applicability>
+        <entity>
+          <name><simpleValue>IFCROOF</simpleValue></name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELCONTAINEDINSPATIALSTRUCTURE">
+          <entity>
+            <name><simpleValue>IFCBUILDINGSTOREY</simpleValue></name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+  </specifications>
+</ids>

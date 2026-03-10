@@ -25,3 +25,6 @@ reports/*.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Generated Blender workspace files (Phase 5)
+workspace/*.blend

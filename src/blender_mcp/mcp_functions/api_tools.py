@@ -3139,3 +3139,372 @@ def get_trimesh_examples(ctx: Context) -> str:
     }
     
     return json.dumps(examples, indent=2)
+
+
+# ─── Opening / Feature tools ────────────────────────────────────────────────
+
+@mcp.tool()
+def get_opening_types(ctx: Context) -> str:
+    """
+    Get all supported IFC opening types and their descriptions.
+
+    Returns:
+        str: JSON containing:
+            - success (bool)
+            - opening_types (dict): keys are type names, values are IFC values
+            - descriptions (dict): human-readable descriptions for each type
+    """
+    try:
+        blender = get_blender_connection()
+        result = blender.send_command("get_opening_types", {})
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error getting opening types: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def create_opening(
+    ctx: Context,
+    element_guid: str,
+    width: float = 1.0,
+    height: float = 2.0,
+    depth: float = 0.3,
+    location: list[float] | None = None,
+    rotation: list[float] | None = None,
+    opening_type: str = "OPENING",
+    name: str | None = None,
+    transformation_matrix: list[list[float]] | None = None,
+    unit_scale: float | None = None,
+    verbose: bool = False,
+) -> str:
+    """
+    Create a rectangular void/opening in a wall, slab, or other IFC element.
+
+    Use this to cut openings that can later be filled with a door or window via
+    fill_opening(). For windows placed with create_window(create_opening=True),
+    this step is handled automatically.
+
+    Args:
+        element_guid: GUID of the host element (wall, slab, etc.)
+        width: Opening width in meters (default: 1.0)
+        height: Opening height in meters (default: 2.0)
+        depth: Opening depth in meters — should exceed element thickness (default: 0.3)
+        location: [x, y, z] centre position of the opening in world space
+        rotation: [rx, ry, rz] rotation angles in degrees
+        opening_type: "OPENING" | "RECESS" | "NOTDEFINED" | "USERDEFINED"
+        name: Optional name for the IfcOpeningElement
+        transformation_matrix: Optional 4×4 transform matrix (overrides location/rotation)
+        unit_scale: IFC unit scale factor; auto-calculated if None
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing opening_guid, element_guid, void_relationship_guid,
+             dimensions, location, rotation.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "element_guid": element_guid,
+            "width": width,
+            "height": height,
+            "depth": depth,
+            "location": location,
+            "rotation": rotation,
+            "opening_type": opening_type,
+            "name": name,
+            "transformation_matrix": transformation_matrix,
+            "unit_scale": unit_scale,
+            "verbose": verbose,
+        }
+        result = blender.send_command("create_opening", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error creating opening: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def fill_opening(
+    ctx: Context,
+    opening_guid: str,
+    element_guid: str,
+    verbose: bool = False,
+) -> str:
+    """
+    Fill an IfcOpeningElement with an element such as a door or window.
+
+    This creates an IfcRelFillsElement relationship between the opening and the
+    filling element. Both must already exist in the model.
+
+    Args:
+        opening_guid: GUID of the IfcOpeningElement to fill
+        element_guid: GUID of the IfcDoor, IfcWindow, or other filling element
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing filling_relationship_guid, opening_guid, element_guid.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "opening_guid": opening_guid,
+            "element_guid": element_guid,
+            "verbose": verbose,
+        }
+        result = blender.send_command("fill_opening", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error filling opening: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def remove_opening(
+    ctx: Context,
+    opening_guid: str,
+    remove_filling: bool = True,
+    verbose: bool = False,
+) -> str:
+    """
+    Remove an IfcOpeningElement and optionally its filling element.
+
+    Args:
+        opening_guid: GUID of the IfcOpeningElement to remove
+        remove_filling: Also delete any door/window that fills the opening (default: True)
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing removed_elements list and message.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "opening_guid": opening_guid,
+            "remove_filling": remove_filling,
+            "verbose": verbose,
+        }
+        result = blender.send_command("remove_opening", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error removing opening: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def remove_filling(
+    ctx: Context,
+    element_guid: str,
+    verbose: bool = False,
+) -> str:
+    """
+    Detach a filling element from its opening without deleting either.
+
+    After calling this, the door/window still exists in the model but is no
+    longer associated with any opening.
+
+    Args:
+        element_guid: GUID of the filling element (IfcDoor, IfcWindow, etc.)
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing element_guid and success message.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "element_guid": element_guid,
+            "verbose": verbose,
+        }
+        result = blender.send_command("remove_filling", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error removing filling: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def get_element_openings(
+    ctx: Context,
+    element_guid: str,
+    include_fillings: bool = True,
+) -> str:
+    """
+    List all openings (voids) cut into a specific IFC element.
+
+    Useful for auditing which walls or slabs have doors/windows and verifying
+    that openings are correctly filled.
+
+    Args:
+        element_guid: GUID of the host element (wall, slab, etc.)
+        include_fillings: Include information about elements filling each opening (default: True)
+
+    Returns:
+        str: JSON containing opening_count and openings list with optional fillings.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "element_guid": element_guid,
+            "include_fillings": include_fillings,
+        }
+        result = blender.send_command("get_element_openings", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error getting element openings: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def get_opening_info(ctx: Context, opening_guid: str) -> str:
+    """
+    Get detailed information about a specific IfcOpeningElement.
+
+    Returns the element it voids, its filling elements, type, and geometry status.
+
+    Args:
+        opening_guid: GUID of the IfcOpeningElement
+
+    Returns:
+        str: JSON containing voids_element, fillings list, predefined_type,
+             and has_representation flag.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {"opening_guid": opening_guid}
+        result = blender.send_command("get_opening_info", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error getting opening info: {e}")
+        return json.dumps({"error": str(e)})
+
+
+# ─── Generic element management tools (root.py) ─────────────────────────────
+
+@mcp.tool()
+def copy_ifc_element(
+    ctx: Context,
+    product_guid: str,
+    copy_representations: bool = False,
+    copy_property_sets: bool = True,
+    copy_material: bool = True,
+    copy_placement: bool = True,
+    verbose: bool = False,
+) -> str:
+    """
+    Duplicate an IFC product, preserving its relationships and properties.
+
+    Copied items include: placement, property sets, quantities, material
+    assignments, spatial containment, type associations, group memberships,
+    and voids. Filled voids and path connectivity are NOT copied.
+
+    Args:
+        product_guid: GlobalId of the element to copy
+        copy_representations: Copy 3D geometry (expensive; default False)
+        copy_property_sets: Copy Psets and quantities (default True)
+        copy_material: Copy material assignments (default True)
+        copy_placement: Copy world placement; False places copy at origin (default True)
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing original_guid, new_guid, class, message.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "product_guid": product_guid,
+            "copy_representations": copy_representations,
+            "copy_property_sets": copy_property_sets,
+            "copy_material": copy_material,
+            "copy_placement": copy_placement,
+            "verbose": verbose,
+        }
+        result = blender.send_command("copy_class", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error copying IFC element: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def reassign_ifc_class(
+    ctx: Context,
+    product_guid: str,
+    new_ifc_class: str,
+    predefined_type: str | None = None,
+    verbose: bool = False,
+) -> str:
+    """
+    Change the IFC class of an existing element while retaining all relationships.
+
+    Useful for correcting mis-classified elements imported from other software.
+    For type objects, all occurrences are also reassigned.
+
+    Args:
+        product_guid: GlobalId of the element to reclassify
+        new_ifc_class: Target IFC class name (e.g. "IfcWall", "IfcSlab", "IfcColumn")
+        predefined_type: Optional predefined type for the new class
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing guid, old_class, new_class, predefined_type, message.
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "product_guid": product_guid,
+            "new_ifc_class": new_ifc_class,
+            "predefined_type": predefined_type,
+            "verbose": verbose,
+        }
+        result = blender.send_command("reassign_class", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error reassigning IFC class: {e}")
+        return json.dumps({"error": str(e)})
+
+
+@mcp.tool()
+def delete_ifc_elements(
+    ctx: Context,
+    guids: list[str] | None = None,
+    use_selection: bool = False,
+    remove_fillings: bool = True,
+    verbose: bool = False,
+) -> str:
+    """
+    Delete one or more IFC elements by GUID or current Blender selection.
+
+    For IfcOpeningElement targets, fillings are removed first (controlled by
+    remove_fillings). All IFC relationships and representations are cleaned up.
+
+    Args:
+        guids: List of GlobalIds to delete (required if use_selection is False)
+        use_selection: Delete elements currently selected in Blender (default False)
+        remove_fillings: For openings, also delete their filling elements (default True)
+        verbose: Enable debug logging
+
+    Returns:
+        str: JSON containing deleted_count, deleted_guids, removed_fillings,
+             errors, message.
+
+    Examples:
+        # Delete specific elements
+        delete_ifc_elements(guids=["abc123", "def456"])
+
+        # Delete current Blender selection
+        delete_ifc_elements(use_selection=True)
+    """
+    try:
+        blender = get_blender_connection()
+        params = {
+            "guids": guids,
+            "use_selection": use_selection,
+            "remove_fillings": remove_fillings,
+            "verbose": verbose,
+        }
+        result = blender.send_command("delete_ifc_objects", params)
+        return json.dumps(result, indent=2)
+    except Exception as e:
+        logger.error(f"Error deleting IFC elements: {e}")
+        return json.dumps({"error": str(e)})

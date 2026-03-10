@@ -26,7 +26,10 @@ try:
     from langchain_chroma import Chroma
 except ImportError:
     from langchain_community.vectorstores import Chroma
-from langchain.schema import Document
+try:
+    from langchain_core.documents import Document
+except ImportError:
+    from langchain.schema import Document  # type: ignore[no-redef]
 
 from .document_parser import IFCDocumentParser
 

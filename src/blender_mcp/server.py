@@ -191,7 +191,8 @@ def get_blender_connection():
     
     return _blender_connection
 
-#import all mcp tools, resources, and prompts
+from . import mcp_functions  # noqa: F401 — registers all @mcp.tool() decorators
+
 
 def main():
     """Run the MCP server"""

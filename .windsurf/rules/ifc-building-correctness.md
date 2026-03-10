@@ -1,0 +1,124 @@
+---
+trigger: always_on
+---
+
+## IFC Building Correctness Rules
+
+These rules govern the **semantic and structural validity** of generated IFC models.
+Apply them during the `plan`, `build`, and `validate` agent phases.
+
+---
+
+### 1. Spatial Hierarchy
+
+- Every model **must** contain exactly one `IfcProject` → `IfcSite` → `IfcBuilding` chain.
+- Every `IfcBuildingStorey` must be contained within an `IfcBuilding` via `IfcRelAggregates`.
+- Every physical element (wall, slab, door, window, stair, roof) must be spatially contained in an `IfcBuildingStorey` via `IfcRelContainedInSpatialStructure`. No element may float without a storey container.
+- Storeys must be ordered with monotonically increasing `Elevation` values. Storey 0 (ground) is at z = 0.0 m unless the site explicitly requires otherwise.
+
+---
+
+### 2. Floor-to-Floor Consistency
+
+- **Every storey** requires:
+  - A floor slab (or structural floor at the base of the storey).
+  - Enclosing walls that form a closed perimeter or match the architectural brief.
+- The top storey requires a roof or roof slab — never leave the top storey open to the sky without a covering element.
+- Do not place a roof element on any storey other than the topmost storey unless explicitly requested (e.g., setback terrace levels).
+
+---
+
+### 3. Wall Heights and Elevations
+
+- Wall `height` must match the floor-to-ceiling height of the storey it belongs to.
+- Wall `location.z` must equal the `Elevation` of its containing storey.
+- Do **not** place walls with z = 0 on upper storeys — compute elevation from `storey_index × floor_height`.
+
+---
+
+### 4. Slab Elevations
+
+- Floor slabs are placed **at the bottom** of each storey: `z = storey.Elevation`.
+- Ceiling/soffit slabs (if modelled separately) are placed at `z = storey.Elevation + storey_height`.
+- Slab polylines must cover the full floor plate — no partial slabs unless the brief explicitly defines a stepped or void floor.
+
+---
+
+### 4a. Door Placement Logic
+
+Doors must be placed on walls that connect to accessible circulation space. The following rules apply:
+
+| Storey | Door type | Valid host wall | Invalid host wall |
+|---|---|---|---|
+| Ground Floor | Main entrance | Exterior south/street façade | — |
+| Ground Floor | Interior | Interior partitions | — |
+| Upper floors (no balcony) | Apartment/office entry | **Interior corridor walls only** | Exterior perimeter walls |
+| Upper floors (with balcony) | Balcony access | Exterior wall at balcony threshold | Any wall without a balcony |
+| Top / Plant floor | Service access | Exterior wall with roof access | Interior partitions |
+
+**Hard rule**: On any storey above Ground Floor where no balcony or external walkway is modelled, **do not place doors on exterior perimeter walls**. An exterior door 7 m above grade with no balcony is architecturally impossible.
+
+For residential upper floors, all apartment entry doors must open onto a **central corridor** enclosed by interior partition walls:
+- Model a corridor (typically 1.2 m – 2.0 m wide) running the length of the floor plate.
+- Place corridor walls as interior `IfcWall` (IsExternal=False).
+- All apartment entry doors void and fill the **corridor wall**, not the exterior wall.
+
+For office upper floors, fire exit / corridor access doors open onto the **interior corridor partition**, not the façade.
+
+---
+
+### 5. Openings Must Be Filled
+
+- Every `IfcOpeningElement` created with `create_opening()` **must** be filled via `fill_opening()` or the door/window must reference the opening host.
+- Unfilled openings are invalid — they represent holes without any architectural element.
+- Verify with `get_element_openings()` after placement to confirm fillings are present.
+
+---
+
+### 6. Element Counts vs. Building Programme
+
+- Cross-check generated element counts against the stated programme:
+  - If the brief says "10 rooms per floor", there must be ≥ 10 rooms or spaces per storey.
+  - If the brief says "N storeys", there must be exactly N `IfcBuildingStorey` instances.
+- Do not generate fewer storeys than requested; storey count is a hard constraint.
+
+---
+
+### 7. Structural Logic
+
+- Columns and load-bearing walls must be **vertically stacked** — a column on storey N must have a corresponding column or wall directly below it on storey N-1.
+- Beams must connect two support points (columns or walls); free-floating beams are invalid.
+- Foundation/footing elements (`IfcFooting`) are only placed at z ≤ 0 (below or at ground level).
+
+---
+
+### 8. Property Sets
+
+- All physical elements must carry at minimum `Pset_WallCommon`, `Pset_SlabCommon`, `Pset_DoorCommon`, `Pset_WindowCommon`, or the appropriate type-specific Pset with `IsExternal` correctly set.
+- `IsExternal = True` for perimeter/facade elements; `IsExternal = False` for interior partitions.
+
+---
+
+### 9. Post-Generation Validation Checklist
+
+After every build, run the following checks before export:
+
+1. `get_ifc_scene_overview()` — verify storey count, spatial hierarchy, and element class totals match the brief.
+2. For every wall with openings: `get_element_openings(wall_guid)` — confirm `opening_count > 0` implies fillings present.
+3. Schema validation: `ifcopenshell.validate.validate(model, logging)`.
+4. IDS validation: run `validate/ids_validate.py` against `ids/v0.ids`.
+5. Visual check: open IFC in a viewer and confirm:
+   - No doors visible on exterior façades above ground floor (unless balcony present).
+   - Stair flights are visible as **stepped solids** in each stair core.
+   - All stair cores have enclosing walls on every floor.
+
+---
+
+### 10. Stair Core Walls on Every Floor
+
+Stair core enclosure walls are **not** auto-generated from the perimeter wall loop. They must be explicitly created for **each storey** that contains or is adjacent to a stair core:
+
+- The building perimeter provides two sides of a corner core — do not re-create them.
+- Create the remaining 1–2 interior sides as `IfcWall` (IsExternal=False) per storey.
+- The same `_build_stair_core_walls()` function must be called in the ground floor, all office floors, all residential floors, and the plant/roof floor.
+- Omitting stair core walls on any floor leaves the core open and fails the stair-core requirement (Rule 4 of ifc-vertical-circulation.md).

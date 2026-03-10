@@ -247,10 +247,11 @@ async def repair_node(state: Dict[str, Any]) -> Dict[str, Any]:
     """LangGraph repair node implementation.
 
     1. Reads validation_results from state
-    2. Gets current scene overview from state (populated by validate node)
-    3. Builds repair prompt
-    4. Appends prompt as HumanMessage for the LLM
-    5. Increments repair_attempts counter
+    2. Gets current scene overview from state
+    3. Builds the repair prompt
+    4. Calls the Azure LLM to generate a JSON array of fix operations
+    5. Executes fix operations via mcp_client if available
+    6. Increments repair_attempts counter
     """
     validation = state.get("validation_results", {})
     attempt = state.get("repair_attempts", 0) + 1
@@ -269,7 +270,36 @@ async def repair_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     scene_overview = state.get("scene_overview", "Scene overview not available")
     prompt = build_repair_prompt(validation, scene_overview, attempt)
-    repair_message = HumanMessage(content=prompt)
+
+    # Ask the LLM to generate fix operations
+    fix_operations: List[Dict[str, Any]] = []
+    try:
+        from agent.llm import get_llm  # local import to avoid circular
+        from agent.prompts import REPAIR_SYSTEM_PROMPT
+        from langchain_core.messages import SystemMessage
+
+        llm = get_llm(temperature=0.0)
+        system_msg = SystemMessage(content=REPAIR_SYSTEM_PROMPT)
+        human_msg = HumanMessage(content=prompt)
+        response = llm.invoke([system_msg, human_msg])
+        raw = response.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
+        fix_operations = json.loads(raw)
+        logger.info(f"[repair] LLM generated {len(fix_operations)} fix operations")
+    except Exception as exc:
+        logger.error(f"[repair] LLM repair generation failed: {exc}")
+
+    # Execute fix operations via MCP client if available
+    repair_results: List[Dict[str, Any]] = []
+    mcp_client = state.get("mcp_client")
+    if mcp_client is not None and fix_operations:
+        repair_results = execute_repairs(fix_operations, mcp_client)
+    else:
+        logger.info("[repair] No mcp_client — fix operations logged but not executed")
+        repair_results = [
+            {**op, "status": "queued"} for op in fix_operations
+        ]
 
     tool_log_entry: Dict[str, Any] = {
         "stage": "repair",
@@ -279,11 +309,11 @@ async def repair_node(state: Dict[str, Any]) -> Dict[str, Any]:
             "ids": validation.get("ids", {}).get("failed", 0),
             "semantic": validation.get("semantic", {}).get("error_count", 0),
         },
+        "fix_operations": repair_results,
     }
 
     return {
         **state,
-        "messages": list(state.get("messages", [])) + [repair_message],
         "repair_attempts": attempt,
         "tool_calls_log": state.get("tool_calls_log", []) + [tool_log_entry],
     }

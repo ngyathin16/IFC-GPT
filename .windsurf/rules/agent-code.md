@@ -1,0 +1,15 @@
+---
+trigger: glob
+glob: "agent/**/*.py"
+---
+
+## Agent Code Rules
+
+- All LangGraph nodes are async functions taking `AgentState`, returning `AgentState`.
+- State modifications must be additive (use `operator.add` for `messages` and list fields).
+- Never hardcode LLM model names — use `agent/config.py` constants.
+- Tool governance: enforce per-stage tool allowlists defined in `.windsurf/skills/langgraph-agent/tool-governance.md`.
+- `BuildingPlan` JSON must validate against `agent/schemas.py` before execution begins.
+- Repair node: classify errors before sending to LLM (reduces token usage ~40%).
+- Max 3 repair attempts: after `repair_attempts >= 3`, route to export with warnings.
+- NEVER delete + recreate IFC elements in repair — it breaks GUIDs and cascades failures.

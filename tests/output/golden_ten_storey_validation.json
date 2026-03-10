@@ -1,0 +1,114 @@
+{
+  "schema": {
+    "valid": true,
+    "schema": "IFC4",
+    "errors": [],
+    "warnings": [],
+    "error_count": 0,
+    "warning_count": 0
+  },
+  "ids": {
+    "valid": true,
+    "total_specs": 15,
+    "passed": 15,
+    "failed": 0,
+    "specifications": [
+      {
+        "name": "Project must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Site must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "Building must exist",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      },
+      {
+        "name": "At least one storey",
+        "status": true,
+        "applicable_entities": 10,
+        "not_applicable": false
+      },
+      {
+        "name": "Walls require IsExternal property",
+        "status": true,
+        "applicable_entities": 115,
+        "not_applicable": false
+      },
+      {
+        "name": "Walls must be in a storey",
+        "status": true,
+        "applicable_entities": 115,
+        "not_applicable": false
+      },
+      {
+        "name": "Slabs require IsExternal property",
+        "status": true,
+        "applicable_entities": 10,
+        "not_applicable": false
+      },
+      {
+        "name": "Slabs must be in a storey",
+        "status": true,
+        "applicable_entities": 10,
+        "not_applicable": false
+      },
+      {
+        "name": "Doors require IsExternal property",
+        "status": true,
+        "applicable_entities": 22,
+        "not_applicable": false
+      },
+      {
+        "name": "Doors must be in a storey",
+        "status": true,
+        "applicable_entities": 22,
+        "not_applicable": false
+      },
+      {
+        "name": "Windows require IsExternal property",
+        "status": true,
+        "applicable_entities": 100,
+        "not_applicable": false
+      },
+      {
+        "name": "Windows must be in a storey",
+        "status": true,
+        "applicable_entities": 100,
+        "not_applicable": false
+      },
+      {
+        "name": "Windows must fill an opening",
+        "status": true,
+        "applicable_entities": 100,
+        "not_applicable": false
+      },
+      {
+        "name": "Doors must fill an opening",
+        "status": true,
+        "applicable_entities": 22,
+        "not_applicable": false
+      },
+      {
+        "name": "Roofs must be in a storey",
+        "status": true,
+        "applicable_entities": 1,
+        "not_applicable": false
+      }
+    ]
+  },
+  "semantic": {
+    "valid": true,
+    "error_count": 0,
+    "warning_count": 0,
+    "issues": []
+  }
+}

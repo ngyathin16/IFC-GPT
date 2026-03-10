@@ -41,6 +41,13 @@ An LLM-driven pipeline that converts natural-language building descriptions into
 - [ ] End-to-end golden test: prompt → valid `.ifc` file round-trip passes in `tests/`.
 - [ ] Validation report written to `reports/` on each run.
 
+### Phase 5 — UI & Distribution (PoC → Internal Beta)
+- [x] README contains a complete "How to Run" guide covering environment setup, MCP server start, and Blender addon installation.
+- [x] `scripts/create_blend_template.py` exists, accepts `--help`, and documents the Blender workspace layout.
+- [x] Running `scripts/create_blend_template.py --output <path>` produces a `.blend` file when executed inside Blender's embedded Python (`blender --background --python`).
+- [x] README documents the Bonsai/BlenderBIM workflow: load `.ifc`, inspect IDS failures, iterate with the agent.
+- [x] `tests/test_phase5.py` passes: README completeness, script `--help`, docstring checks.
+
 ---
 
 ## Non-Functional Requirements

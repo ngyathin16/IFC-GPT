@@ -1,0 +1,200 @@
+{
+  "_comment": "Example BuildingPlan JSONs matching the Pydantic schema in agent/schemas.py",
+  "examples": [
+    {
+      "_name": "simple_room",
+      "_description": "Single rectangular room, 5x4m, ground floor, 1 door, 1 window, flat roof",
+      "plan_id": "example-simple-room",
+      "description": "Single room house, 5x4m, 1 storey, flat roof, 1 door (south), 1 window (east)",
+      "site": { "name": "Default Site" },
+      "building": { "name": "Small House", "building_type": "Residential" },
+      "storeys": [
+        {
+          "storey_ref": "GF",
+          "name": "Ground Floor",
+          "elevation": 0.0,
+          "floor_to_floor_height": 3.0
+        }
+      ],
+      "elements": [
+        {
+          "element_type": "wall",
+          "wall_ref": "W1",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [0, 0],
+          "end_point": [5, 0],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "W2",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [5, 0],
+          "end_point": [5, 4],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "W3",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [5, 4],
+          "end_point": [0, 4],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "W4",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [0, 4],
+          "end_point": [0, 0],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "slab",
+          "component_id": "ground_slab",
+          "storey_ref": "GF",
+          "boundary_points": [[0, 0], [5, 0], [5, 4], [0, 4]]
+        },
+        {
+          "element_type": "door",
+          "component_id": "standard_door",
+          "storey_ref": "GF",
+          "host_wall_ref": "W1",
+          "distance_along_wall": 2.5,
+          "sill_height": 0.0,
+          "width": 0.9,
+          "height": 2.1,
+          "operation_type": "SINGLE_SWING_LEFT"
+        },
+        {
+          "element_type": "window",
+          "component_id": "standard_window",
+          "storey_ref": "GF",
+          "host_wall_ref": "W2",
+          "distance_along_wall": 2.0,
+          "sill_height": 0.9,
+          "width": 1.2,
+          "height": 1.5,
+          "partition_type": "SINGLE_PANEL"
+        },
+        {
+          "element_type": "roof",
+          "component_id": "flat_roof",
+          "storey_ref": "GF",
+          "boundary_points": [[-0.3, -0.3, 3.0], [5.3, -0.3, 3.0], [5.3, 4.3, 3.0], [-0.3, 4.3, 3.0]],
+          "roof_type": "FLAT",
+          "angle": 2.0,
+          "thickness": 0.3
+        }
+      ],
+      "wall_junctions": [
+        {"wall_ref_a": "W1", "wall_ref_b": "W2", "junction_type": "L"},
+        {"wall_ref_a": "W2", "wall_ref_b": "W3", "junction_type": "L"},
+        {"wall_ref_a": "W3", "wall_ref_b": "W4", "junction_type": "L"},
+        {"wall_ref_a": "W4", "wall_ref_b": "W1", "junction_type": "L"}
+      ],
+      "rooms": [
+        {
+          "name": "Main Room",
+          "storey_ref": "GF",
+          "bounding_wall_refs": ["W1", "W2", "W3", "W4"],
+          "area_sqm": 20.0
+        }
+      ]
+    },
+    {
+      "_name": "two_storey",
+      "_description": "Two-storey house, 8x6m, gable roof, stairs between floors",
+      "plan_id": "example-two-storey",
+      "description": "Two-storey house 8x6m with straight staircase and gable roof",
+      "site": { "name": "Default Site" },
+      "building": { "name": "Two Storey House", "building_type": "Residential" },
+      "storeys": [
+        {
+          "storey_ref": "GF",
+          "name": "Ground Floor",
+          "elevation": 0.0,
+          "floor_to_floor_height": 3.0
+        },
+        {
+          "storey_ref": "L1",
+          "name": "First Floor",
+          "elevation": 3.0,
+          "floor_to_floor_height": 3.0
+        }
+      ],
+      "elements": [
+        {
+          "element_type": "wall",
+          "wall_ref": "GF_W1",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [0, 0],
+          "end_point": [8, 0],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "GF_W2",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [8, 0],
+          "end_point": [8, 6],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "GF_W3",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [8, 6],
+          "end_point": [0, 6],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "wall",
+          "wall_ref": "GF_W4",
+          "component_id": "exterior_wall",
+          "storey_ref": "GF",
+          "start_point": [0, 6],
+          "end_point": [0, 0],
+          "thickness": 0.2
+        },
+        {
+          "element_type": "slab",
+          "component_id": "ground_slab",
+          "storey_ref": "GF",
+          "boundary_points": [[0, 0], [8, 0], [8, 6], [0, 6]]
+        },
+        {
+          "element_type": "slab",
+          "component_id": "upper_slab",
+          "storey_ref": "L1",
+          "boundary_points": [[0, 0], [8, 0], [8, 6], [0, 6]]
+        },
+        {
+          "element_type": "stairs",
+          "component_id": "straight_stair",
+          "storey_ref": "GF",
+          "target_storey_ref": "L1",
+          "location": [1.0, 1.0],
+          "stairs_type": "STRAIGHT",
+          "width": 1.2
+        },
+        {
+          "element_type": "roof",
+          "component_id": "gable_roof",
+          "storey_ref": "L1",
+          "boundary_points": [[-0.3, -0.3, 6.0], [8.3, -0.3, 6.0], [8.3, 6.3, 6.0], [-0.3, 6.3, 6.0]],
+          "roof_type": "GABLE_ROOF",
+          "angle": 35.0,
+          "thickness": 0.3
+        }
+      ]
+    }
+  ]
+}

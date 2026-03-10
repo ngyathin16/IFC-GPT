@@ -232,6 +232,50 @@
       </requirements>
     </specification>
 
+    <!-- ==================== OPENING HOSTING ==================== -->
+
+    <specification name="Windows must fill an opening" ifcVersion="IFC4"
+                   instructions="Every IfcWindow must be related to an IfcOpeningElement via IfcRelFillsElement. The relation navigates through the opening to its host wall.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCWINDOW</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELVOIDSELEMENT IFCRELFILLSELEMENT" cardinality="required"
+                instructions="Window must have an IfcRelFillsElement referencing an IfcOpeningElement that in turn voids a host wall.">
+          <entity>
+            <name>
+              <simpleValue>IFCWALL</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
+    <specification name="Doors must fill an opening" ifcVersion="IFC4"
+                   instructions="Every IfcDoor must be related to an IfcOpeningElement via IfcRelFillsElement. The relation navigates through the opening to its host wall.">
+      <applicability>
+        <entity>
+          <name>
+            <simpleValue>IFCDOOR</simpleValue>
+          </name>
+        </entity>
+      </applicability>
+      <requirements>
+        <partOf relation="IFCRELVOIDSELEMENT IFCRELFILLSELEMENT" cardinality="required"
+                instructions="Door must have an IfcRelFillsElement referencing an IfcOpeningElement that in turn voids a host wall.">
+          <entity>
+            <name>
+              <simpleValue>IFCWALL</simpleValue>
+            </name>
+          </entity>
+        </partOf>
+      </requirements>
+    </specification>
+
     <!-- ==================== ROOFS ==================== -->
 
     <specification name="Roofs must be in a storey" ifcVersion="IFC4">
