@@ -1,0 +1,148 @@
+# Component Registry Schema — Example
+# This file documents the YAML structure for components/registry.yaml
+# Each entry defines a parametric building primitive the LLM may use.
+
+version: "0.1"
+schema_version: "1"
+
+components:
+  - id: exterior_wall
+    ifc_class: IfcWall
+    mcp_tool: create_two_point_wall
+    description: Exterior load-bearing wall
+    default_params:
+      thickness: 0.2
+      height: 3.0
+    constraints:
+      thickness: { min: 0.15, max: 0.5 }
+      height: { min: 2.4, max: 6.0 }
+    required_psets:
+      - name: Pset_WallCommon
+        properties:
+          IsExternal: true
+
+  - id: interior_wall
+    ifc_class: IfcWall
+    mcp_tool: create_two_point_wall
+    description: Interior partition wall
+    default_params:
+      thickness: 0.1
+      height: 3.0
+    constraints:
+      thickness: { min: 0.08, max: 0.25 }
+      height: { min: 2.4, max: 6.0 }
+    required_psets:
+      - name: Pset_WallCommon
+        properties:
+          IsExternal: false
+
+  - id: ground_slab
+    ifc_class: IfcSlab
+    mcp_tool: create_slab
+    description: Ground floor slab
+    default_params:
+      depth: 0.2
+    constraints:
+      depth: { min: 0.1, max: 0.5 }
+    required_psets:
+      - name: Pset_SlabCommon
+        properties:
+          IsExternal: false
+
+  - id: upper_slab
+    ifc_class: IfcSlab
+    mcp_tool: create_slab
+    description: Upper floor slab (between storeys)
+    default_params:
+      depth: 0.25
+    constraints:
+      depth: { min: 0.15, max: 0.5 }
+    required_psets:
+      - name: Pset_SlabCommon
+        properties:
+          IsExternal: false
+
+  - id: standard_door
+    ifc_class: IfcDoor
+    mcp_tool: create_door
+    description: Standard single-leaf swing door
+    default_params:
+      width: 0.9
+      height: 2.1
+      operation_type: SINGLE_SWING_LEFT
+    constraints:
+      width: { min: 0.7, max: 1.2 }
+      height: { min: 1.9, max: 2.4 }
+    required_psets:
+      - name: Pset_DoorCommon
+        properties:
+          IsExternal: true
+
+  - id: double_door
+    ifc_class: IfcDoor
+    mcp_tool: create_door
+    description: Double-leaf swing door
+    default_params:
+      width: 1.8
+      height: 2.1
+      operation_type: DOUBLE_DOOR_SINGLE_SWING
+    constraints:
+      width: { min: 1.4, max: 2.4 }
+      height: { min: 1.9, max: 2.4 }
+    required_psets:
+      - name: Pset_DoorCommon
+        properties:
+          IsExternal: true
+
+  - id: standard_window
+    ifc_class: IfcWindow
+    mcp_tool: create_window
+    description: Standard single-panel window
+    default_params:
+      width: 1.2
+      height: 1.5
+      partition_type: SINGLE_PANEL
+      sill_height: 0.9
+    constraints:
+      width: { min: 0.4, max: 3.0 }
+      height: { min: 0.4, max: 2.5 }
+      sill_height: { min: 0.0, max: 2.0 }
+    required_psets:
+      - name: Pset_WindowCommon
+        properties:
+          IsExternal: true
+
+  - id: flat_roof
+    ifc_class: IfcRoof
+    mcp_tool: create_roof
+    description: Flat roof with minimal slope
+    default_params:
+      roof_type: FLAT
+      angle: 2.0
+      thickness: 0.3
+    constraints:
+      angle: { min: 0.0, max: 10.0 }
+      thickness: { min: 0.2, max: 0.6 }
+
+  - id: gable_roof
+    ifc_class: IfcRoof
+    mcp_tool: create_roof
+    description: Traditional gable (peaked) roof
+    default_params:
+      roof_type: GABLE_ROOF
+      angle: 35.0
+      thickness: 0.3
+    constraints:
+      angle: { min: 15.0, max: 60.0 }
+      thickness: { min: 0.2, max: 0.5 }
+
+  - id: straight_stair
+    ifc_class: IfcStair
+    mcp_tool: create_stairs
+    description: Standard straight-run staircase
+    default_params:
+      stairs_type: STRAIGHT
+      width: 1.2
+      length: 4.0
+    constraints:
+      width: { min: 0.9, max: 2.5 }

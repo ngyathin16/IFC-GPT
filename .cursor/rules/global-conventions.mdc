@@ -1,0 +1,28 @@
+---
+description: Global coding conventions for the LLM-IFC project
+alwaysApply: true
+---
+
+## Global Coding Conventions — LLM-IFC Project
+
+### Environment
+- Two Python envs: system venv (MCP server) vs Blender embedded Python. NEVER cross-install.
+- Use `uv` for dependency management, not pip.
+- Python 3.10+ with type hints on ALL function signatures.
+
+### Code Style
+- Module docstrings on every .py file.
+- Use `logging` module, NEVER `print()` (breaks MCP stdio transport).
+- All IFC operations via `ifcopenshell.api.run()`.
+- JSON-serializable inputs/outputs for any MCP-facing code.
+
+### IFC Conventions
+- IFC4 schema only. Coordinates in meters. Z-axis up.
+- Call `save_and_load_ifc()` after any mutation to the Blender scene.
+- Never use `execute_blender_code` in automated agent flows.
+
+### Testing & Reporting
+- All new functionality needs a test in `tests/`.
+- Golden tests must pass before merging to main.
+- Validation reports go to `reports/` directory.
+- Commit messages follow Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `test:`.

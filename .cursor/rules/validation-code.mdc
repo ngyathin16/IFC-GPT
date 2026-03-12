@@ -1,0 +1,18 @@
+---
+description: Validation script conventions for IFC validators
+globs: validate/**/*.py
+alwaysApply: false
+---
+
+## Validation Code Rules
+
+- All validators return the standard contract:
+  ```json
+  {"valid": true, "error_count": 0, "warning_count": 0, "errors": [], "warnings": []}
+  ```
+- Schema validation uses `ifcopenshell.validate.json_logger()`.
+- IDS validation uses `ifctester` library against `ids/v0.ids`.
+- Semantic checks are custom Python — no external deps beyond `ifcopenshell`.
+- IDS XML must validate against the buildingSMART IDS 1.0 XSD schema.
+- New validation checks need a corresponding golden test case in `tests/`.
+- Validators must be runnable as standalone scripts with `--help` via argparse.

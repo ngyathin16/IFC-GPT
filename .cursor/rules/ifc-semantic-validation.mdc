@@ -1,0 +1,130 @@
+---
+description: Semantic correctness checks for generated IFC models
+alwaysApply: true
+---
+
+## IFC Semantic Validation Rules
+
+These rules define the **semantic correctness checks** that must pass before a generated
+IFC model is considered acceptable. They are derived from the IFC4 specification,
+buildingSMART validation guidelines, and common-sense architectural logic.
+
+---
+
+### 1. Element Classification Correctness
+
+| Element | Required IFC Class | Forbidden mis-classifications |
+|---|---|---|
+| External perimeter wall | `IfcWall` with `IsExternal=True` | `IfcSlab`, `IfcBuildingElementProxy` |
+| Interior partition | `IfcWall` with `IsExternal=False` | `IfcCurtainWall` |
+| Floor | `IfcSlab` with `PredefinedType=FLOOR` | `IfcWall`, `IfcRoof` |
+| Roof slab | `IfcSlab` with `PredefinedType=ROOF` OR `IfcRoof` | `IfcSlab FLOOR` |
+| Stair flight | `IfcStairFlight` | `IfcStair` (container only), `IfcBuildingElementProxy`, `IfcRamp` |
+| Column | `IfcColumn` | `IfcWall`, `IfcBeam` |
+| Beam | `IfcBeam` | `IfcColumn`, `IfcWall` |
+| Foundation | `IfcFooting` | `IfcSlab` |
+| Door | `IfcDoor` inside `IfcOpeningElement` | Free-floating `IfcDoor` without opening |
+| Window | `IfcWindow` inside `IfcOpeningElement` | Free-floating `IfcWindow` without opening |
+
+---
+
+### 2. Geometry Completeness
+
+- Every `IfcWall`, `IfcSlab`, `IfcRoof`, `IfcStair`, `IfcColumn`, `IfcBeam` must carry a **Body** representation (`IfcShapeRepresentation` with `RepresentationIdentifier = "Body"`).
+- Every `IfcWall` should also carry an **Axis** representation (`RepresentationIdentifier = "Axis"`) for plan-view export compatibility.
+- Elements without geometry representations are invalid and will break downstream viewers.
+
+---
+
+### 3. Spatial Containment Uniqueness
+
+- Each element must be contained in **exactly one** `IfcBuildingStorey` — duplicate containment relationships are invalid per IFC4 § 5.4.
+- An element cannot be simultaneously contained in two storeys.
+- Verify with: for each `IfcRelContainedInSpatialStructure`, `RelatingStructure` must be the element's immediate storey, not a building or site.
+
+---
+
+### 4. Relationships Integrity
+
+- `IfcRelVoidsElement` (opening in a wall/slab): `RelatingBuildingElement` must be a physical element; `RelatedOpeningElement` must be `IfcOpeningElement`.
+- `IfcRelFillsElement` (door/window in opening): `RelatingOpeningElement` must be `IfcOpeningElement`; `RelatedBuildingElement` must be `IfcDoor` or `IfcWindow`.
+- `IfcRelAggregates` for spatial hierarchy: `RelatingObject` is the parent spatial element; `RelatedObjects` are child elements of the same or lower level.
+- Circular aggregate relationships are forbidden.
+
+---
+
+### 5. Numeric Constraints
+
+| Attribute | Minimum | Maximum | Notes |
+|---|---|---|---|
+| Wall thickness | 0.05 m | 2.0 m | < 0.05 m is not a structural wall |
+| Wall height | 2.1 m | 6.0 m | Typical residential/commercial range |
+| Slab depth | 0.05 m | 0.6 m | Typical structural concrete/composite |
+| Door width | 0.7 m | 3.0 m | Min accessible = 0.85 m |
+| Door height | 2.0 m | 3.5 m | — |
+| Window sill height | 0.0 m | storey_height − 0.5 m | Must not exceed wall top |
+| Stair riser | 0.10 m | 0.22 m | Ergonomic/code range |
+| Stair going (tread) | 0.25 m | 0.45 m | — |
+| Stair width | 0.8 m | 4.0 m | < 0.8 m is a ladder, not a stair |
+| Column height | 0.5 m | storey_height | Must not exceed storey height |
+| Storey height (floor-to-floor) | 2.5 m | 8.0 m | < 2.5 m is a sub-floor void |
+
+---
+
+### 6. Material Assignments
+
+- Every structural element (walls, slabs, columns, beams, foundations) must have at least one material assigned via `material.assign_material`.
+- Glass or transparent materials must only be assigned to `IfcWindow`, `IfcCurtainWall`, or `IfcPlate` elements — not to walls or slabs.
+- Roof elements must use a weather-resistant material (e.g., "Roofing Membrane", "Concrete", "Steel", "Timber Truss").
+
+---
+
+### 7. Zone and Space Completeness
+
+- If the brief specifies rooms (e.g., "office", "meeting room", "bathroom"), each named room must be represented as an `IfcSpace` contained within the appropriate storey.
+- `IfcSpace` boundaries (`IfcRelSpaceBoundary`) must be defined if the brief includes room-level thermal or acoustic data.
+
+---
+
+### 8. Global Coordinate Consistency
+
+- All elements within one building must share the same `IfcLocalPlacement` root — typically referenced to the building's `IfcLocalPlacement`.
+- Do not mix absolute and relative placements within the same building.
+- **No coordinate collision**: new buildings must be placed ≥ 20 m from any existing building bounding box. Query `get_ifc_scene_overview()` first.
+
+---
+
+### 9. IFC4 Schema-Specific Rules
+
+- Use `IfcWall` (not `IfcWallStandardCase`) — `IfcWallStandardCase` is deprecated in IFC4.
+- Use `IfcDoor` (not `IfcDoorStandardCase`) — same reason.
+- Use `IfcWindow` (not `IfcWindowStandardCase`) — same reason.
+- `PredefinedType` values must match the IFC4 enumeration exactly (e.g., `FLOOR`, `ROOF`, `BASESLAB` for slabs — not free-text strings).
+- `GlobalId` values must be unique across the entire model — never reuse or copy GUIDs manually.
+- Use `IfcStairFlight` for individual stair flights (with geometry). `IfcStair` is a container/assembly element — do not assign geometry or spatial containment directly to it.
+
+---
+
+### 10. Agent Repair Guidance
+
+When the repair node encounters validation failures, apply fixes in this priority order:
+
+1. **Spatial containment** errors — fix first, as they cascade into other failures.
+2. **Missing representations** — add body geometry before property fixes.
+3. **Wrong IFC class** — use `reassign_ifc_class()` to fix without deleting.
+4. **Unfilled openings** — use `fill_opening()` or `remove_opening()`.
+5. **Numeric out-of-range** — update via `update_wall()`, `update_slab()`, etc.
+6. **Material missing** — assign via `execute_ifc_code_tool()` with `material.assign_material`.
+
+Do NOT delete and recreate elements to fix classification errors — this breaks GUIDs and cascades relationship failures.
+
+---
+
+### 11. IDS `partOf` Relation Constraints
+
+When writing or interpreting `ids/v0.ids` specifications with `<partOf>`:
+
+- The only valid enum values for `relation` are: `IFCRELAGGREGATES`, `IFCRELASSIGNSTOGROUP`, `IFCRELCONTAINEDINSPATIALSTRUCTURE`, `IFCRELNESTS`, and `IFCRELVOIDSELEMENT IFCRELFILLSELEMENT` (space-separated combined value).
+- `IFCRELFILLSELEMENT` alone is **not** a valid enum value — it will cause `IdsXmlValidationError` on load.
+- When checking that a door/window fills an opening via `IFCRELVOIDSELEMENT IFCRELFILLSELEMENT`, ifctester traverses all the way to the host **wall**. The `entity/name` in the partOf facet must therefore be `IFCWALL`, not `IFCOPENINGELEMENT`.
+- `minOccurs` is not a valid attribute on `<specification>` elements — remove it if present.
