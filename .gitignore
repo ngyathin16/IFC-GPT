@@ -28,3 +28,15 @@ Thumbs.db
 
 # Generated Blender workspace files (Phase 5)
 workspace/*.blend
+
+# Web frontend
+web/node_modules/
+web/.next/
+web/.env.local
+
+# API temp files
+/tmp/voice_*.webm
+
+# Local workspace artifacts
+workspace/unknown.ifc
+workspace/unknown_viewport.png

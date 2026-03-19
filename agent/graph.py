@@ -719,7 +719,11 @@ def present_and_export(state: AgentState) -> AgentState:
     )
 
     summary_msg = AIMessage(content=summary)
-    return {**state, "messages": list(state["messages"]) + [summary_msg]}
+    return {
+        **state,
+        "messages": list(state["messages"]) + [summary_msg],
+        "final_ifc_path": ifc_path,
+    }
 
 
 # ---------------------------------------------------------------------------

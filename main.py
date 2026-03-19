@@ -1,13 +1,22 @@
-"""Entry point for the LLM-IFC-Generation MCP server.
+"""IFC-GPT entry point.
 
-Run with:  uv run main.py
-Inspect with: npx @modelcontextprotocol/inspector uv --directory . run main.py
+Usage:
+    uv run main.py               # MCP stdio server (Windsurf/Claude Desktop)
+    uv run main.py --http        # FastAPI HTTP server (web frontend)
+    uv run main.py --http --port 8000
 """
-from blender_mcp.server import main as server_main
+import sys
+
 
 def main():
-    """Entry point for the blender-mcp package"""
-    server_main()
+    if "--http" in sys.argv:
+        import uvicorn
+        port = int(sys.argv[sys.argv.index("--port") + 1]) if "--port" in sys.argv else 8000
+        uvicorn.run("api.server:app", host="0.0.0.0", port=port, reload=True)
+    else:
+        from blender_mcp.server import main as server_main
+        server_main()
+
 
 if __name__ == "__main__":
     main()

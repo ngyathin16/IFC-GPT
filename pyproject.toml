@@ -36,6 +36,7 @@ dependencies = [
     # Web server
     "fastapi>=0.111.0",
     "uvicorn>=0.30.0",
+    "python-multipart>=0.0.6",
     # Scientific computing
     "numpy>=1.26.0",
     "scipy>=1.11.0",

@@ -1,9 +1,11 @@
 """LLM client factory for the IFC generation agent.
 
+Uses gpt-5.4-pro via the Azure OpenAI Responses API endpoint.
+
 Provides a single ``get_llm()`` function that returns a LangChain-compatible
 chat model backed by the Azure OpenAI **Responses API** endpoint.
 
-``gpt-5.1-codex-max`` only supports ``POST /openai/responses`` — NOT the
+``gpt-5.4-pro`` only supports ``POST /openai/responses`` — NOT the
 Chat Completions endpoint used by ``AzureChatOpenAI``.  This module wraps
 that API in a minimal ``BaseChatModel`` subclass so the rest of the agent
 can call ``.invoke()`` / ``.stream()`` as normal.
@@ -12,7 +14,7 @@ Environment variables (set in .env):
     AZURE_OPENAI_API_KEY       — Azure resource key
     AZURE_OPENAI_ENDPOINT      — Full endpoint URL, e.g.
                                  https://ov-virginia.cognitiveservices.azure.com/openai/responses?api-version=2025-04-01-preview
-    AZURE_OPENAI_DEPLOYMENT    — Model name / deployment (e.g. gpt-5.1-codex-max)
+    AZURE_OPENAI_DEPLOYMENT    — Model name / deployment (e.g. gpt-5.4-pro)
     AZURE_OPENAI_API_VERSION   — API version string (e.g. 2025-04-01-preview)
     OPENAI_API_KEY             — Fallback plain OpenAI key
     OPENAI_BASE_URL            — Fallback base URL
@@ -43,6 +45,12 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _llm_instance = None
+
+
+def reset_llm() -> None:
+    """Clear the cached LLM singleton. Call this after changing env vars."""
+    global _llm_instance
+    _llm_instance = None
 
 
 # ---------------------------------------------------------------------------
@@ -150,7 +158,7 @@ def get_llm(temperature: float = 0.2) -> BaseChatModel:
         "AZURE_OPENAI_ENDPOINT",
         "https://ov-virginia.cognitiveservices.azure.com/openai/responses?api-version=2025-04-01-preview",
     )
-    azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-5.1-codex-max")
+    azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-5.4-pro")
 
     if azure_key:
         logger.info(
@@ -172,7 +180,7 @@ def get_llm(temperature: float = 0.2) -> BaseChatModel:
 
     from langchain_openai import ChatOpenAI  # type: ignore[import]
 
-    kwargs: dict = {"temperature": temperature, "model": "gpt-5.1-codex-max"}
+    kwargs: dict = {"temperature": temperature, "model": "gpt-5.4-pro"}
     if openai_key:
         kwargs["api_key"] = openai_key  # type: ignore[assignment]
     if openai_base:
